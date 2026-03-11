@@ -45,7 +45,10 @@ const S = {
 const STORAGE_KEY = 'dp6';
 
 const SAVE_URL = (()=>{
-  const base = window.location.href.replace(/\/[^\/]*$/, '');
+  const host = window.location.hostname;
+  const base = (host === 'ronald-almeida.github.io')
+    ? 'https://bigcompany.shop/painelv'
+    : window.location.href.replace(/\/[^\/]*$/, '');
   return base + '/save.php';
 })();
 
@@ -204,7 +207,10 @@ function calcTaxasGw(gw, brutoGw, vendasGw, saquesGw){
    bigcompany.shop/painelV4/proxy?url=...
 ─────────────────────────────────────────────────────────── */
 function proxyUrl(targetUrl){
-  const base = window.location.href.replace(/\/[^\/]*$/, '');
+  const host = window.location.hostname;
+  const base = (host === 'ronald-almeida.github.io')
+    ? 'https://bigcompany.shop/painelv'
+    : window.location.href.replace(/\/[^\/]*$/, '');
   return { _proxy: true, _targetUrl: targetUrl, _proxyUrl: `${base}/proxy.php` };
 }
 
