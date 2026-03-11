@@ -862,7 +862,7 @@ function notifyTx(tx){
   const title  = isPaid ? 'VENDA APROVADA' : 'VENDA GERADA';
   const valor  = brl((tx.amount||0)/100);
   const body   = `Venda >> ${valor}`;
-  const iconUrl = 'https://ronald-almeida.github.io/bigutm/icon-512.png';
+  const iconUrl = 'https://ronald-almeida.github.io/bigutm/Design%20sem%20nome.png';
   new Notification(title, { body, icon: iconUrl, badge: iconUrl });
 }
 
