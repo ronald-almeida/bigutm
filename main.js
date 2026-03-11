@@ -859,10 +859,11 @@ function enableNotifications(){
 function notifyTx(tx){
   if(!('Notification' in window) || Notification.permission !== 'granted') return;
   const isPaid = tx.status === 'PAID' || tx.status === 'AUTHORIZED';
-  const title  = isPaid ? 'VENDA APROVADA | BIG UTM' : 'VENDA GERADA | BIG UTM';
+  const title  = isPaid ? 'VENDA APROVADA' : 'VENDA GERADA';
   const valor  = brl((tx.amount||0)/100);
   const body   = `Venda >> ${valor}`;
-  new Notification(title, { body, icon: 'favicon.ico' });
+  const iconUrl = 'https://ronald-almeida.github.io/bigutm/icon-512.png';
+  new Notification(title, { body, icon: iconUrl, badge: iconUrl });
 }
 
 function checkNewTransactions(newTxs){
