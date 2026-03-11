@@ -1,0 +1,25 @@
+{
+  "name": "BIG UTM — Painel Financeiro",
+  "short_name": "BIG UTM",
+  "description": "Painel financeiro de gateways de pagamento",
+  "start_url": "/bigutm/",
+  "scope": "/bigutm/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#080f1a",
+  "theme_color": "#080f1a",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

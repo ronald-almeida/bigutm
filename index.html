@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BIG UTM">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="theme-color" content="#080f1a">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BIG UTM — Painel Financeiro</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="font-preload-ui" aria-hidden="true">BIG UTM</div>
+<div id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- ══ HEADER ═══════════════════════════════════════════════ -->
+<header class="header">
+  <div class="header-left">
+    <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+    <div class="logo">
+  <svg class="logo-svg" width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="34" height="34" rx="10" fill="url(#logoGrad)"/>
+    <path d="M10 17L14 10L18 17L22 13L26 17" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="26" cy="17" r="2.5" fill="#00ff87"/>
+    <defs>
+      <linearGradient id="logoGrad" x1="0" y1="0" x2="34" y2="34" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#0a1628"/>
+        <stop offset="100%" stop-color="#0d2137"/>
+      </linearGradient>
+    </defs>
+  </svg>
+  <span class="logo-text">BIG<em>UTM</em></span>
+</div>
+  </div>
+  <div class="header-center">
+    <!-- breadcrumb / page name -->
+    <span class="page-breadcrumb" id="breadcrumb">Resultado</span>
+  </div>
+  <div class="header-right">
+    <div class="gw-pills">
+      <div class="gw-pill anubis-pill" id="pillAnubis" onclick="openModal('modalApiAnubis')"><div class="dot" id="apiDotAnubis"></div><span id="apiTxtAnubis">AnubisPay</span></div>
+      <div class="gw-pill umbrella-pill" id="pillUmbrella" onclick="openModal('modalApiUmbrella')"><div class="dot" id="apiDotUmbrella"></div><span id="apiTxtUmbrella">UmbrelaPag</span></div>
+    </div>
+    <button class="btn-sync" id="btnSync" onclick="syncData()" disabled>
+      <span class="ico">↻</span><span class="spin">⟳</span><span class="btn-sync-txt"> Sincronizar</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- ══ SIDEBAR ══════════════════════════════════════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-inner">
+
+      <div class="nav-sec">
+        <div class="nav-lbl">Painel</div>
+        <div class="nav-item" data-page="resultado" onclick="goPage('resultado')">
+          <span class="nav-icon"></span> Resultado
+        </div>
+        <div class="nav-item" data-page="transacoes" onclick="goPage('transacoes')">
+          <span class="nav-icon"></span> Transações
+          <span class="nav-badge" id="navTxBadge"></span>
+        </div>
+        <div class="nav-item" data-page="saques" onclick="goPage('saques')">
+          <span class="nav-icon"></span> Saques
+          <span class="nav-badge" id="navWdBadge"></span>
+        </div>
+      </div>
+
+      <div class="nav-sec">
+        <div class="nav-lbl">Metas</div>
+        <div class="nav-item" data-page="metas" onclick="goPage('metas')">
+          <span class="nav-icon"></span> Metas
+        </div>
+      </div>
+
+      <div class="nav-sec">
+        <div class="nav-lbl">Custos</div>
+        <div class="nav-item" data-page="chips" onclick="goPage('chips')">
+          <span class="nav-icon"></span> Chips
+        </div>
+        <div class="nav-item" data-page="escritorio" onclick="goPage('escritorio')">
+          <span class="nav-icon"></span> Escritório
+        </div>
+        <div class="nav-item" data-page="aquisicoes" onclick="goPage('aquisicoes')">
+          <span class="nav-icon"></span> Aquisições
+        </div>
+        <div class="nav-item" onclick="openFixoModal('func');closeSidebar()">
+          <span class="nav-icon"></span> Funcionários
+        </div>
+        <div class="nav-item" onclick="openFixoModal('cont');closeSidebar()">
+          <span class="nav-icon"></span> Contador
+        </div>
+      </div>
+
+      <div class="nav-sec sidebar-bottom">
+        <div class="nav-lbl">Config</div>
+        <div class="nav-item" onclick="openTaxasModal();closeSidebar()">
+          <span class="nav-icon"></span> Taxas
+        </div>
+        <div class="nav-item" onclick="openModal('modalApiAnubis');closeSidebar()">
+          <span class="nav-icon"></span> AnubisPay API
+        </div>
+        <div class="nav-item" onclick="openModal('modalApiUmbrella');closeSidebar()">
+          <span class="nav-icon"></span> UmbrelaPag API
+        </div>
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- ══ MAIN ════════════════════════════════════════════ -->
+  <main class="main">
+    <div class="loading-bar" id="loadingBar"></div>
+
+    <!-- Barra de período (visível em todas as páginas) -->
+    <div class="topbar">
+      <div class="topbar-title">
+        <div class="page-title" id="pageTitle">Resultado Financeiro</div>
+        <div class="page-sub"   id="periodSub">Configure a API e selecione o período</div>
+      </div>
+      <div class="date-bar">
+        <div class="period-btns">
+          <button class="period-btn" data-period="today" onclick="setPeriod('today')">Hoje</button>
+          <button class="period-btn" data-period="week"  onclick="setPeriod('week')">7d</button>
+          <button class="period-btn active" data-period="month" onclick="setPeriod('month')">Mês</button>
+          <button class="period-btn" data-period="last"  onclick="setPeriod('last')">Anterior</button>
+        </div>
+        <div class="date-inputs">
+          <input class="date-input" type="date" id="dateFrom">
+          <span class="date-sep">→</span>
+          <input class="date-input" type="date" id="dateTo">
+          <button class="btn-primary" onclick="syncData()">Buscar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Source selector -->
+    <div class="source-bar">
+      <span class="source-lbl">Fonte:</span>
+      <button class="source-btn active-both"  id="srcBtnBoth"     onclick="setSource('both')">⊕ Ambos</button>
+      <button class="source-btn"              id="srcBtnAnubis"   onclick="setSource('anubis')"><span style="color:var(--anubis)">●</span> AnubisPay</button>
+      <button class="source-btn"              id="srcBtnUmbrella" onclick="setSource('umbrella')"><span style="color:var(--umbrella)">●</span> UmbrelaPag</button>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         PÁGINA: RESULTADO
+    ══════════════════════════════════════════════════ -->
+    <section class="page active" id="page-resultado">
+
+      <!-- Hero resultado -->
+      <div class="resultado-hero">
+        <div class="rh-card rh-lucro">
+          
+          <div class="rh-label">Lucro Líquido</div>
+          <div class="rh-val green" id="valLucro">R$ 0,00</div>
+        </div>
+        <div class="rh-card rh-margem">
+          
+          <div class="rh-label">Margem Líquida</div>
+          <div class="rh-val blue" id="valMargem">0,0%</div>
+        </div>
+      </div>
+
+      <!-- Banners -->
+      <div class="banners-row">
+        <div class="bruto-banner">
+          <div class="banner-main">
+            <div class="bruto-label">Faturamento Bruto — PIX</div>
+            <div class="bruto-val" id="valBruto">R$ 0,00</div>
+
+          </div>
+          <div class="bruto-stats">
+            <div class="bs"><div class="bs-lbl">Ticket Médio</div><div class="bs-val" id="valTicket">R$ 0,00</div></div>
+            <div class="bs"><div class="bs-lbl">Aprovação</div>   <div class="bs-val" id="valAprov">—%</div></div>
+            <div class="bs"><div class="bs-lbl">Reembolsos</div>  <div class="bs-val" style="color:var(--red)" id="valRefund">R$ 0,00</div></div>
+          </div>
+        </div>
+        <div class="bruto-banner saques-banner">
+          <div class="banner-main">
+            <div class="bruto-label" style="color:var(--ink3)">Saques Realizados — Receita</div>
+            <div class="bruto-val" id="valSaquesTotal">R$ 0,00</div>
+
+          </div>
+          <div class="bruto-stats">
+            
+          </div>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpi-grid">
+        <div class="kpi kpi-red">   <div class="kpi-lbl"><div class="kpi-dot" style="background:var(--red)"></div>Taxas Gateway</div><div class="kpi-val red"    id="valTaxasTotal">R$ 0,00</div><div class="kpi-sub" id="subTaxas">0%</div></div>
+        <div class="kpi kpi-orange"><div class="kpi-lbl"><div class="kpi-dot" style="background:var(--orange,#f97316)"></div>Taxa Checkout</div><div class="kpi-val orange" id="valCheckout">R$ 0,00</div><div class="kpi-sub" id="subCheckout">2.5% do faturamento</div></div>
+        <div class="kpi kpi-yellow"><div class="kpi-lbl"><div class="kpi-dot" style="background:var(--yellow)"></div>Custos Fixos</div><div class="kpi-val yellow" id="valFixosTotal">R$ 0,00</div><div class="kpi-sub" id="subFixos">Chip+Func+Cont+Escr</div></div>
+        <div class="kpi kpi-blue">  <div class="kpi-lbl"><div class="kpi-dot" style="background:var(--blue)"></div>Total Deduções</div><div class="kpi-val blue"   id="valDeducoes">R$ 0,00</div><div class="kpi-sub" id="subDed">0%</div></div>
+        <div class="kpi kpi-purple"><div class="kpi-lbl"><div class="kpi-dot" style="background:var(--purple)"></div>Transações PIX</div><div class="kpi-val purple" id="valTxCount">0</div><div class="kpi-sub" id="subTx">0 pendentes</div></div>
+      </div>
+
+      <!-- Custos Fixos -->
+      <div class="sec-title">Custos Fixos</div>
+      <div class="fixos-grid">
+        <div class="fixo-card"><div class="fixo-top"><button class="fixo-btn" onclick="goPage('chips')">ver chips</button></div><div class="fixo-name">Chips / Disparos</div><div class="fixo-val" id="valChip">− R$ 0,00</div><div class="fixo-note" id="noteChip">—</div></div>
+        <div class="fixo-card"><div class="fixo-top"><button class="fixo-btn" onclick="openFixoModal('func')">editar</button></div><div class="fixo-name">Funcionário(s)</div><div class="fixo-val" id="valFunc">− R$ 0,00</div><div class="fixo-note" id="noteFunc">—</div></div>
+        <div class="fixo-card"><div class="fixo-top"><button class="fixo-btn" onclick="openFixoModal('cont')">editar</button></div><div class="fixo-name">Contador</div><div class="fixo-val" id="valCont">− R$ 0,00</div><div class="fixo-note">Honorários mensais</div></div>
+        <div class="fixo-card"><div class="fixo-top"><button class="fixo-btn" onclick="goPage('escritorio')">ver itens</button></div><div class="fixo-name">Escritório</div><div class="fixo-val" id="valEscritorio">− R$ 0,00</div><div class="fixo-note" id="noteEscritorio">—</div></div>
+        <div class="fixo-card"><div class="fixo-top"><button class="fixo-btn" onclick="goPage('aquisicoes')">ver itens</button></div><div class="fixo-name">Aquisições</div><div class="fixo-val" id="valAquisicoes">− R$ 0,00</div><div class="fixo-note" id="noteAquisicoes">—</div></div>
+      </div>
+
+      <!-- Gráfico histórico -->
+      <div class="chart-card">
+        <div class="sec-title" style="margin-bottom:10px;">Histórico Mensal</div>
+        <div class="chart-legend">
+          <div class="lg-i"><div class="lg-d" style="background:var(--green)"></div>Faturamento</div>
+          <div class="lg-i"><div class="lg-d" style="background:var(--blue)"></div>Lucro</div>
+          <div class="lg-i"><div class="lg-d" style="background:var(--orange)"></div>Saques</div>
+          <div class="lg-i"><div class="lg-d" style="background:rgba(255,205,60,.4);border:1px dashed var(--yellow)"></div>Meta</div>
+        </div>
+        <div class="chart-wrap" id="chartWrap"></div>
+      </div>
+
+    </section>
+
+    <!-- ══════════════════════════════════════════════════
+         PÁGINA: TRANSAÇÕES
+    ══════════════════════════════════════════════════ -->
+    <section class="page" id="page-transacoes">
+
+      <div class="table-card">
+        <div class="table-top">
+          <div>
+            <div class="sec-title" style="margin-bottom:2px;font-size:14px;">Transações PIX <span style="font-size:11px;color:var(--ink3)" id="txLbl"></span></div>
+            <div style="font-size:11px;color:var(--ink3)">Todas as transações do período selecionado</div>
+          </div>
+          <div class="table-filters">
+            <select class="filter-select" id="filterGw" onchange="renderTable()">
+              <option value="">Todos gateways</option>
+              <option value="anubis">AnubisPay</option>
+              <option value="umbrella">UmbrelaPag</option>
+            </select>
+            <select class="filter-select" id="filterSt" onchange="renderTable()">
+              <option value="">Todos status</option>
+              <option value="paid">Pago</option>
+              <option value="pending">Pendente</option>
+              <option value="refunded">Reembolsado</option>
+              <option value="canceled">Cancelado</option>
+            </select>
+            <input class="search-input" id="searchIn" placeholder="🔍 Buscar cliente..." oninput="renderTable()">
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th>Cliente / ID</th>
+              <th class="col-method">Método</th>
+              <th class="col-date">Data</th>
+              <th class="col-status">Status</th>
+              <th style="text-align:right">Valor</th>
+            </tr></thead>
+            <tbody id="txBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ══════════════════════════════════════════════════
+         PÁGINA: SAQUES
+    ══════════════════════════════════════════════════ -->
+    <section class="page" id="page-saques">
+
+      <!-- resumo rápido de saques -->
+      <div class="page-summary-cards">
+        <div class="summary-card blue-card">
+          <div class="sc-label">Total Sacado</div>
+          <div class="sc-val" id="wdTotalLbl">R$ 0,00</div>
+        </div>
+        <div class="summary-card">
+          <div class="sc-label">Quantidade</div>
+          <div class="sc-val" id="wdCountLbl">0 saques</div>
+        </div>
+        <div class="summary-card">
+          <div class="sc-label">AnubisPay</div>
+          <div class="sc-val green" id="wdAnubisLbl">R$ 0,00</div>
+        </div>
+        <div class="summary-card">
+          <div class="sc-label">UmbrelaPag</div>
+          <div class="sc-val purple" id="wdBlackLbl">R$ 0,00</div>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-top">
+          <div>
+            <div class="sec-title" style="margin-bottom:2px;font-size:14px;">Saques Realizados</div>
+            <div style="font-size:11px;color:var(--ink3)">Saques entram como receita no cálculo do lucro</div>
+          </div>
+          <div class="table-filters">
+            <select class="filter-select" id="filterWdGw" onchange="renderWithdrawals()">
+              <option value="">Todos gateways</option>
+              <option value="anubis">AnubisPay</option>
+              <option value="umbrella">UmbrelaPag</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th>Banco / ID</th>
+              <th class="col-date">Data</th>
+              <th class="col-status">Status</th>
+              <th style="text-align:right">Valor</th>
+            </tr></thead>
+            <tbody id="wdBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ══════════════════════════════════════════════════
+         PÁGINA: METAS
+    ══════════════════════════════════════════════════ -->
+    <section class="page" id="page-metas">
+
+      <!-- Meta do mês atual -->
+      <div class="meta-card" id="metaCard">
+        <div class="meta-empty"><div class="meta-empty-txt">Carregando...</div></div>
+      </div>
+
+      <!-- Histórico de metas -->
+      <div class="sec-header" style="margin-top:8px">
+        <div class="sec-title">Histórico de Metas</div>
+      </div>
+      <div class="hist-card">
+        <div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th>Mês</th>
+              <th>Meta</th>
+              <th>Faturado</th>
+              <th>Progresso</th>
+              <th>Resultado</th>
+              <th></th>
+            </tr></thead>
+            <tbody id="metaHistBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ══════════════════════════════════════════════════
+         PÁGINA: CHIPS
+    ══════════════════════════════════════════════════ -->
+    <section class="page" id="page-chips">
+
+      <!-- Card resumo chips mês atual -->
+      <div class="chip-mes-card">
+        <div class="cmc-left">
+          <div class="cmc-label">📱 Chips — <span id="chipMesAtualLabel">Mês Atual</span></div>
+          <div class="cmc-val" id="chipMesAtualVal">R$ 0,00</div>
+          <div class="cmc-note" id="chipMesAtualNote">—</div>
+        </div>
+        <button class="btn-save" onclick="openChipModal()" style="align-self:center">+ Registrar / Editar</button>
+      </div>
+
+      <!-- Histórico de chips -->
+      <div class="sec-header" style="margin-top:8px">
+        <div class="sec-title">Histórico de Chips por Mês</div>
+      </div>
+      <div class="hist-card">
+        <div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th>Mês</th>
+              <th>Qtd Chips</th>
+              <th>Custo Unit.</th>
+              <th>Total Mês</th>
+              <th></th>
+            </tr></thead>
+            <tbody id="chipHistBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- ══════════════════════════════════════════════════
+         PÁGINA: ESCRITÓRIO
+    ══════════════════════════════════════════════════ -->
+    <section class="page" id="page-escritorio">
+
+      <!-- Resumo -->
+      <div class="chip-mes-card">
+        <div class="cmc-left">
+          <div class="cmc-label">Gastos Fixos — Escritório</div>
+          <div class="cmc-val" id="escrTotal">− R$ 0,00</div>
+          <div class="cmc-note" id="escrCount">0 item(s)</div>
+        </div>
+        <button class="btn-save" onclick="openAddEscr()" style="align-self:center">+ Adicionar</button>
+      </div>
+
+      <!-- Tabela de gastos -->
+      <div class="hist-card">
+        <div class="table-top">
+          <div>
+            <div class="sec-title" style="margin-bottom:2px;font-size:14px;">Itens de Custo</div>
+            <div style="font-size:11px;color:var(--t3)">Aluguel, internet, energia, assinaturas e outros</div>
+          </div>
+          <button class="btn-save" onclick="openAddEscr()">+ Adicionar</button>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th>Descrição</th>
+              <th>Valor/mês</th>
+              <th></th>
+              <th></th>
+            </tr></thead>
+            <tbody id="escrBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ═══════════════ PÁGINA: AQUISIÇÕES ═══════════════ -->
+    <section class="page" id="page-aquisicoes">
+      <div class="chip-mes-card">
+        <div class="cmc-left">
+          <div class="cmc-label">Aquisições — Celulares, Infra, Serviços</div>
+          <div class="cmc-val" id="aqTotal">− R$ 0,00</div>
+          <div class="cmc-note" id="aqCount">0 item(s)</div>
+        </div>
+        <button class="btn-save" onclick="openAddAq()">+ Adicionar</button>
+      </div>
+      <div class="hist-card">
+        <div class="table-top">
+          <div>
+            <div class="sec-title" style="margin-bottom:2px;font-size:14px;">Itens de Aquisição</div>
+            <div style="font-size:11px;color:var(--t3)">Celulares, hospedagem, VPN, proxy e outros</div>
+          </div>
+          <button class="btn-save" onclick="openAddAq()">+ Adicionar</button>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th>Descrição</th>
+              <th>Categoria</th>
+              <th>Valor/mês</th>
+              <th></th>
+            </tr></thead>
+            <tbody id="aqBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div><!-- /.layout -->
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAIS
+══════════════════════════════════════════════════════════ -->
+<div class="modal-bg" id="modalApiAnubis"><div class="modal">
+  <div class="modal-title"><span style="color:var(--anubis)">⚡</span> Conectar AnubisPay</div>
+  <div class="info-box">
+    <strong>Como obter:</strong> app.anubispay.com.br → Config → API → Chave Privada<br>
+    Usada em <code class="code-inline">Authorization: Basic</code> para transações e saques (<code class="code-inline">GET /v1/transfers/</code>)
+  </div>
+  <div class="err-box" id="apiErrAnubis"></div>
+  <div class="form-group">
+    <label class="form-label">API Key</label>
+    <input class="form-input" type="password" id="inputApiAnubis" placeholder="sk_live_...">
+  </div>
+  <div class="modal-actions">
+    <button class="btn-cancel" onclick="closeModal('modalApiAnubis')">Cancelar</button>
+    <button class="btn-save" onclick="saveApiKeyAnubis()">Conectar</button>
+  </div>
+</div></div>
+
+<div class="modal-bg" id="modalApiUmbrella"><div class="modal">
+  <div class="modal-title">Conectar UmbrelaPag</div>
+
+  <div class="err-box" id="apiErrUmbrella"></div>
+
+  <div class="form-group">
+    <label class="form-label">URL Base da API
+      <span class="form-label-badge" style="color:var(--purple)">endpoint</span>
+    </label>
+    
+  </div>
+
+  <div class="api-divider"></div>
+
+  <div class="form-group">
+    <label class="form-label">API Key
+      <span class="form-label-badge" style="color:var(--purple)">Bearer token</span>
+    </label>
+    <input class="form-input purple" type="password" id="inputApiUmbrella" placeholder="bcp_...">
+    <div class="form-hint">UmbrelaPag → Dashboard → API Key · Enviada como <code class="code-inline">Authorization: Bearer</code></div>
+  </div>
+
+  <div class="modal-actions">
+    <button class="btn-cancel" onclick="closeModal('modalApiUmbrella')">Cancelar</button>
+    <button class="btn-save purple-save" onclick="saveApiUmbrella()">Conectar</button>
+  </div>
+</div></div>
+
+<!-- TAXAS -->
+<div class="modal-bg" id="modalTaxa"><div class="modal modal-wide">
+  <div class="modal-title">% Taxas por Gateway</div>
+  <div class="taxa-tabs">
+    <button class="taxa-tab active" id="taxaTabAnubis"   onclick="switchTaxaTab('anubis')"><span style="color:var(--anubis)">⚡</span> AnubisPay</button>
+    <button class="taxa-tab"        id="taxaTabUmbrella" onclick="switchTaxaTab('umbrella')">UmbrelaPag</button>
+  </div>
+  <div class="taxa-panel active" id="taxaPanelAnubis">
+    <div class="taxa-panel-info anubis-info">Taxas cobradas pelo <strong>AnubisPay</strong> em cada transação PIX aprovada.</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">% Porcentagem sobre valor</label><div class="form-input-wrap"><input class="form-input" type="number" id="tp_anubis_pct" step="0.01" placeholder="Ex: 1.99"><span class="form-unit">%</span></div><div class="form-hint">Percentual cobrado sobre o valor de cada venda</div></div>
+      <div class="form-group"><label class="form-label">Taxa Fixa por venda (R$)</label><div class="form-input-wrap"><input class="form-input" type="number" id="tp_anubis_fixo" step="0.01" placeholder="Ex: 0.30"><span class="form-unit">R$</span></div><div class="form-hint">Valor fixo cobrado por cada venda aprovada</div></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Retenção (%)</label><div class="form-input-wrap"><input class="form-input" type="number" id="tp_anubis_retencao" step="0.01" placeholder="Ex: 0.50"><span class="form-unit">%</span></div><div class="form-hint">% retido além da taxa principal</div></div>
+      <div class="form-group"><label class="form-label">Taxa por Saque (R$)</label><div class="form-input-wrap"><input class="form-input" type="number" id="tp_anubis_saque" step="0.01" placeholder="Ex: 3.67"><span class="form-unit">R$</span></div><div class="form-hint">Cobrado por cada saque realizado</div></div>
+    </div>
+  </div>
+  <div class="taxa-panel" id="taxaPanelUmbrella">
+    <div class="taxa-panel-info umbrella-info">Taxas cobradas pelo <strong>UmbrelaPag</strong> em cada transação PIX aprovada.</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">% Porcentagem sobre valor</label><div class="form-input-wrap"><input class="form-input" type="number" id="tp_umbrella_pct" step="0.01" placeholder="Ex: 1.99"><span class="form-unit">%</span></div><div class="form-hint">Percentual cobrado sobre o valor de cada venda</div></div>
+      <div class="form-group"><label class="form-label">Taxa Fixa por venda (R$)</label><div class="form-input-wrap"><input class="form-input" type="number" id="tp_umbrella_fixo" step="0.01" placeholder="Ex: 0.30"><span class="form-unit">R$</span></div><div class="form-hint">Valor fixo cobrado por cada venda aprovada</div></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Retenção (%)</label><div class="form-input-wrap"><input class="form-input" type="number" id="tp_umbrella_retencao" step="0.01" placeholder="Ex: 0.50"><span class="form-unit">%</span></div><div class="form-hint">% retido além da taxa principal</div></div>
+      <div class="form-group"><label class="form-label">Taxa por Saque (R$)</label><div class="form-input-wrap"><input class="form-input" type="number" id="tp_umbrella_saque" step="0.01" placeholder="Ex: 3.67"><span class="form-unit">R$</span></div><div class="form-hint">Cobrado por cada saque realizado</div></div>
+    </div>
+  </div>
+  <div class="modal-actions"><button class="btn-cancel" onclick="closeModal('modalTaxa')">Cancelar</button><button class="btn-save" onclick="saveTaxas()">Salvar Taxas</button></div>
+</div></div>
+
+<div class="modal-bg" id="modalFixo"><div class="modal">
+  <div class="modal-title" id="fixoTitle">Editar Custo</div>
+  <div id="fixoBody"></div>
+  <div class="modal-actions"><button class="btn-cancel" onclick="closeModal('modalFixo')">Cancelar</button><button class="btn-save" onclick="saveFixo()">Salvar</button></div>
+</div></div>
+
+<div class="modal-bg" id="modalChip"><div class="modal">
+  <div class="modal-title">📱 <span id="chipModalTitle">Chips do Mês</span></div>
+  <input type="hidden" id="chipKeyHidden">
+  <div class="info-box">Custo renovável todo mês — preencha qtd + valor unitário ou o total direto.</div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Qtd de Chips</label><input class="form-input" type="number" id="chipQtd" placeholder="Ex: 10"></div>
+    <div class="form-group"><label class="form-label">Custo por Chip (R$)</label><input class="form-input" type="number" id="chipUnit" step="0.01" placeholder="Ex: 45.00"></div>
+  </div>
+  <div class="form-group"><label class="form-label">Ou total direto (R$)</label><input class="form-input" type="number" id="chipTotal" step="0.01" placeholder="Deixe vazio para calcular acima"></div>
+  <div class="err-box" id="chipErr"></div>
+  <div class="modal-actions"><button class="btn-cancel" onclick="closeModal('modalChip')">Cancelar</button><button class="btn-save" onclick="saveChip()">Salvar</button></div>
+</div></div>
+
+<div class="modal-bg" id="modalMeta"><div class="modal">
+  <div class="modal-title"><span id="metaModalTitle">Meta do Mês</span></div>
+  <input type="hidden" id="metaKeyHidden">
+  <div class="form-group"><label class="form-label">Valor da meta (R$)</label><input class="form-input" type="number" id="inputMeta" step="100" placeholder="Ex: 50000"></div>
+  <div class="err-box" id="metaErr"></div>
+  <div class="modal-actions"><button class="btn-cancel" onclick="closeModal('modalMeta')">Cancelar</button><button class="btn-save yellow-save" onclick="saveMeta()">Salvar Meta</button></div>
+</div></div>
+
+<div class="modal-bg" id="modalMetaPrompt"><div class="modal" style="text-align:center">
+  <div class="modal-prompt-icon">🗓️</div>
+  <div class="modal-title" style="justify-content:center">Novo mês, nova meta!</div>
+  <div class="modal-prompt-txt">Você ainda não definiu a meta para <strong>este mês</strong>.</div>
+  <div class="modal-actions" style="justify-content:center">
+    <button class="btn-cancel" onclick="closeModal('modalMetaPrompt')">Agora não</button>
+    <button class="btn-save yellow-save" onclick="confirmarMetaPrompt()">Definir meta</button>
+  </div>
+</div></div>
+
+<div class="modal-bg" id="modalChipPrompt"><div class="modal" style="text-align:center">
+  <div class="modal-prompt-icon">📱</div>
+  <div class="modal-title" style="justify-content:center">Custo de chips deste mês?</div>
+  <div class="modal-prompt-txt">Registre o custo dos chips para manter o relatório preciso.</div>
+  <div class="modal-actions" style="justify-content:center">
+    <button class="btn-cancel" onclick="closeModal('modalChipPrompt')">Agora não</button>
+    <button class="btn-save" onclick="confirmarChipPrompt()">Registrar 📱</button>
+  </div>
+</div></div>
+
+
+<div class="modal-bg" id="modalEscritorio"><div class="modal">
+  <div class="modal-title"><span id="escrModalTitle">Adicionar Gasto</span></div>
+  <input type="hidden" id="escrIdHidden">
+  <div class="err-box" id="escrErr"></div>
+  <div class="form-group">
+    <label class="form-label">Descrição</label>
+    <input class="form-input" type="text" id="escrNome" placeholder="Ex: Aluguel, Internet, Energia...">
+  </div>
+  <div class="form-group">
+    <label class="form-label">Valor mensal (R$)</label>
+    <input class="form-input" type="number" id="escrVal" step="0.01" placeholder="Ex: 1500.00">
+  </div>
+  <div class="form-group">
+    <label class="form-label">Observação <span style="color:var(--t3);font-size:9px;font-weight:400">(opcional)</span></label>
+    <input class="form-input" type="text" id="escrNota" placeholder="Ex: Contrato até dez/2025">
+  </div>
+  <div class="modal-actions">
+    <button class="btn-cancel" onclick="closeModal('modalEscritorio')">Cancelar</button>
+    <button class="btn-save" onclick="saveEscr()">Salvar</button>
+  </div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+<script src="umbrella.js"></script>
+<script src="main.js"></script>
+
+<!-- Banner: localStorage bloqueado -->
+<div id="lsBlockedBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#ff4d6d;color:#fff;padding:14px 20px;font-family:monospace;font-size:12px;font-weight:700;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 -4px 20px rgba(0,0,0,.4);">
+  <span>⚠ Armazenamento local bloqueado — dados não serão salvos. Se estiver em modo privado/anônimo, os dados não persistem entre sessões. Use uma aba normal.</span>
+  <button onclick="this.parentElement.style.display='none'" style="background:rgba(0,0,0,.3);border:none;color:#fff;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:bold">✕</button>
+</div>
+<!-- Modal: Adicionar Aquisição -->
+<div class="modal-bg" id="modalAddAq"><div class="modal">
+  <div class="modal-title">Adicionar Aquisição</div>
+  <div class="err-box" id="aqErr"></div>
+  <div class="form-group">
+    <label class="form-label">Descrição</label>
+    <input class="form-input" type="text" id="aqDesc" placeholder="Ex: Celular Samsung, VPN NordVPN...">
+  </div>
+  <div class="form-group">
+    <label class="form-label">Categoria</label>
+    <select class="form-input" id="aqCat">
+      <option value="celular">Celular</option>
+      <option value="hospedagem">Hospedagem</option>
+      <option value="vpn">VPN</option>
+      <option value="proxy">Proxy</option>
+      <option value="outro">Outro</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label class="form-label">Valor (R$)</label>
+    <div class="form-input-wrap">
+      <input class="form-input" type="number" id="aqVal" step="0.01" placeholder="0,00">
+      <span class="form-unit">R$</span>
+    </div>
+  </div>
+  <input type="hidden" id="aqEditId">
+  <div class="modal-actions">
+    <button class="btn-cancel" onclick="closeModal('modalAddAq')">Cancelar</button>
+    <button class="btn-save" onclick="saveAq()">Salvar</button>
+  </div>
+</div></div>
+
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('./sw.js')
+      .then(()=>console.log('SW registrado'))
+      .catch(e=>console.log('SW erro:', e));
+  });
+}
+</script>
+</body>
+</html>

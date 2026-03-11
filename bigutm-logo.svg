@@ -1,0 +1,31 @@
+<svg width="320" height="120" viewBox="0 0 320 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="320" height="120" rx="20" fill="#080f1a"/>
+  
+  <!-- Icon box -->
+  <rect x="20" y="24" width="72" height="72" rx="16" fill="url(#iconGrad)"/>
+  <rect x="20" y="24" width="72" height="72" rx="16" stroke="rgba(0,255,135,0.2)" stroke-width="1"/>
+  
+  <!-- Chart line icon -->
+  <polyline points="32,76 43,58 55,70 66,50 80,60" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <circle cx="80" cy="60" r="3.5" fill="#00ff87"/>
+  
+  <!-- BIG text -->
+  <text x="112" y="58" font-family="'Arial Black', sans-serif" font-weight="900" font-size="36" fill="white" letter-spacing="2">BIG</text>
+  
+  <!-- UTM text in green -->
+  <text x="112" y="94" font-family="'Arial Black', sans-serif" font-weight="900" font-size="28" fill="#00ff87" letter-spacing="6">UTM</text>
+  
+  <!-- Subtitle -->
+  <text x="113" y="110" font-family="Arial, sans-serif" font-size="9" fill="rgba(255,255,255,0.3)" letter-spacing="3">PAINEL FINANCEIRO</text>
+
+  <!-- Green accent line -->
+  <line x1="112" y1="67" x2="292" y2="67" stroke="rgba(0,255,135,0.15)" stroke-width="1"/>
+
+  <defs>
+    <linearGradient id="iconGrad" x1="20" y1="24" x2="92" y2="96" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0d2137"/>
+      <stop offset="100%" stop-color="#061020"/>
+    </linearGradient>
+  </defs>
+</svg>
