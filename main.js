@@ -558,6 +558,7 @@ function calc(txs,wds,from,to){
   set('valFunc','− '+brl(fFunc)); set('noteFunc',S.fixos.func.qtd+' funcionário(s)');
   set('valCont','− '+brl(fCont));
   set('valEscritorio','− '+brl(fEscr)); set('noteEscritorio',(S.fixos.escritorio||[]).length+' item(s)');
+  set('valAquisicoes','− '+brl(fAq)); set('noteAquisicoes',(S.fixos.aquisicoes||[]).length+' item(s)');
 
   // ── Resultado Líquido ──
   const lEl=document.getElementById('valLucro');
@@ -736,10 +737,11 @@ function updateFixosDisplay(){
   const ck=curMesKey(),c=S.chipsHistory[ck]||{val:0,qtd:0,unit:0};
   set('valChip','− '+brl(c.val||0)); set('noteChip',c.qtd?c.qtd+' chips × '+brl(c.unit||0)+'/chip':mesLabel(ck));
   set('valFunc','− '+brl(S.fixos.func.val)); set('noteFunc',S.fixos.func.qtd+' funcionário(s)');
-  const fE=totalEscritorio();
+  const fE=totalEscritorio(), fAq=totalAquisicoes();
   set('valCont','− '+brl(S.fixos.cont.val));
   set('valEscritorio','− '+brl(fE)); set('noteEscritorio',(S.fixos.escritorio||[]).length+' item(s)');
-  set('valFixosTotal',brl((c.val||0)+S.fixos.func.val+S.fixos.cont.val+fE));
+  set('valAquisicoes','− '+brl(fAq)); set('noteAquisicoes',(S.fixos.aquisicoes||[]).length+' item(s)');
+  set('valFixosTotal',brl((c.val||0)+S.fixos.func.val+S.fixos.cont.val+fE+fAq));
 }
 let curFixo='';
 function openFixoModal(type){ curFixo=type; const titles={func:'Funcionário(s)',cont:'Contador'}; set('fixoTitle','Editar — '+titles[type]); let html=''; if(type==='func') html=`<div class="form-group"><label class="form-label">Número de Funcionários</label><input class="form-input" type="number" id="fiQtd" value="${S.fixos.func.qtd}" placeholder="Ex: 2"></div><div class="form-group"><label class="form-label">Custo Total (R$/mês)</label><input class="form-input" type="number" id="fiTotal" step="0.01" value="${S.fixos.func.val||''}" placeholder="Ex: 4000.00"></div>`; else html=`<div class="form-group"><label class="form-label">Honorários do Contador (R$/mês)</label><input class="form-input" type="number" id="fiTotal" step="0.01" value="${S.fixos.cont.val||''}" placeholder="Ex: 600.00"></div>`; document.getElementById('fixoBody').innerHTML=html; openModal('modalFixo'); }
