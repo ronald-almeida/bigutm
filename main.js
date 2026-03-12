@@ -30,7 +30,7 @@ const S = {
     anubis:   { pct:0, fixo:0, retencao:0, taxaSaque:0 },
     umbrella: { pct:0, fixo:0, retencao:0, taxaSaque:0 }
   },
-  fixos:          { func:{val:0,qtd:0}, cont:{val:0}, escritorio:[] },
+  fixos:          { func:{val:0,qtd:0}, cont:{val:0}, escritorio:[], aquisicoes:[] },
   chipsHistory:   {},
   transactions:   [],
   withdrawals:    [],
@@ -862,7 +862,7 @@ function notifyTx(tx){
   const title  = isPaid ? 'VENDA APROVADA' : 'VENDA GERADA';
   const valor  = brl((tx.amount||0)/100);
   const body   = `Venda >> ${valor}`;
-  const iconUrl = 'https://ronald-almeida.github.io/bigutm/Design%20sem%20nome.png';
+  const iconUrl = 'https://ronald-almeida.github.io/bigutm/logo.png';
   new Notification(title, { body, icon: iconUrl, badge: iconUrl });
 }
 
