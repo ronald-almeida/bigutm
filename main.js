@@ -709,6 +709,8 @@ function renderHistoricoMetas(){
 /* ── Chips mensais ────────────────────────────────────────── */
 function openChipModal(keyOverride){ const key=keyOverride||curMesKey(), c=S.chipsHistory[key]||{val:0,qtd:0,unit:0}; set('chipModalTitle','Chips — '+mesLabel(key)); document.getElementById('chipKeyHidden').value=key; document.getElementById('chipQtd').value=c.qtd||''; document.getElementById('chipUnit').value=c.unit||''; document.getElementById('chipTotal').value=c.val||''; openModal('modalChip'); }
 function saveChip(){ const key=document.getElementById('chipKeyHidden').value, qtd=parseInt(document.getElementById('chipQtd').value)||0, unit=parseFloat(document.getElementById('chipUnit').value)||0, total=parseFloat(document.getElementById('chipTotal').value)||0, val=total>0?total:qtd*unit; if(val<=0){showErr('chipErr','Insira qtd × valor ou total');return;} setChipMes(key,{val,qtd,unit}); closeModal('modalChip'); if(S.transactions.length) calc(S.transactions,S.withdrawals,'',''); else updateFixosDisplay(); renderChipHistorico(); showToast('✓ Chips '+mesLabel(key)+' — '+brl(val),'green'); }
+
+function zerarChip(){ const key=document.getElementById('chipKeyHidden').value; setChipMes(key,{val:0,qtd:0,unit:0}); closeModal('modalChip'); if(S.transactions.length) calc(S.transactions,S.withdrawals,'',''); else updateFixosDisplay(); renderChipHistorico(); showToast('Chips zerados','yellow'); }
 function confirmarChipPrompt(){ closeModal('modalChipPrompt'); openChipModal(); }
 
 function renderChipHistorico(){
