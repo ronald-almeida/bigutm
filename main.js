@@ -31,6 +31,7 @@ const S = {
     umbrella: { pct:0, fixo:0, retencao:0, taxaSaque:0 }
   },
   fixos:          { func:{val:0,qtd:0}, cont:{val:0}, escritorio:[], aquisicoes:[] },
+  impostos:       [],
   chipsHistory:   {},
   transactions:   [],
   withdrawals:    [],
@@ -110,6 +111,7 @@ function hydrate(raw){
       if(sv.fixos.cont) Object.assign(S.fixos.cont, sv.fixos.cont);
       if(Array.isArray(sv.fixos.escritorio)) S.fixos.escritorio = sv.fixos.escritorio;
       if(Array.isArray(sv.fixos.aquisicoes))  S.fixos.aquisicoes  = sv.fixos.aquisicoes;
+      if(Array.isArray(sv.impostos))              S.impostos          = sv.impostos;
     }
 
     // Dicionários de chave-valor
@@ -885,6 +887,94 @@ function checkNewTransactions(newTxs){
       }
     }
   });
+}
+
+
+/* ── Impostos ───────────────────────────────────────────── */
+function renderImpostos(){
+  // Simulador
+  const fat = calcBrutoAtual ? calcBrutoAtual() : 0;
+  const el = document.getElementById('impFaturamento');
+  if(el) el.textContent = 'R$ ' + brl(fat);
+  calcSimuladorImposto();
+
+  // Tabela
+  const tbody = document.getElementById('impostosBody');
+  if(!tbody) return;
+  if(!S.impostos.length){
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">Nenhum imposto registrado.<br>Clique em "+ Adicionar" para começar.</div></td></tr>`;
+    return;
+  }
+  const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  tbody.innerHTML = S.impostos
+    .slice().sort((a,b)=>b.mes.localeCompare(a.mes))
+    .map((item,i)=>{
+      const [ano,m] = item.mes.split('-');
+      const mesNome = meses[parseInt(m)-1] + ' ' + ano;
+      const badge = item.status === 'pago'
+        ? `<span style="color:#00ff87;font-weight:600;">✓ Pago</span>`
+        : `<span style="color:#f6c90e;font-weight:600;">⏳ Pendente</span>`;
+      return `<tr>
+        <td>${mesNome}</td>
+        <td class="amount neg">${brl(item.val)}</td>
+        <td>${badge}</td>
+        <td style="color:var(--t3);font-size:11px;">${item.obs||'—'}</td>
+        <td style="display:flex;gap:6px;">
+          <button class="fixo-btn" onclick="toggleImpostoStatus(${S.impostos.indexOf(item)})">${item.status==='pago'?'Reabrir':'Marcar pago'}</button>
+          <button class="fixo-btn" style="color:var(--red);border-color:var(--red);" onclick="removeImposto(${S.impostos.indexOf(item)})">remover</button>
+        </td>
+      </tr>`;
+    }).join('');
+}
+
+function calcSimuladorImposto(){
+  const aliquota = parseFloat(document.getElementById('impAliquota')?.value)||0;
+  const fat = calcBrutoAtual ? calcBrutoAtual() : 0;
+  const estimado = fat * (aliquota/100);
+  const el = document.getElementById('impEstimado');
+  if(el) el.textContent = 'R$ ' + brl(estimado);
+  const elFat = document.getElementById('impFaturamento');
+  if(elFat) elFat.textContent = 'R$ ' + brl(fat);
+}
+
+function openAddImposto(){
+  const now = new Date();
+  const mes = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  document.getElementById('impostoMes').value = mes;
+  document.getElementById('impostoVal').value = '';
+  document.getElementById('impostoStatus').value = 'pendente';
+  document.getElementById('impostoObs').value = '';
+  document.getElementById('impostoEditIdx').value = '';
+  showErr('impostoErr','');
+  openModal('modalAddImposto');
+}
+
+function saveImposto(){
+  const mes = document.getElementById('impostoMes').value;
+  const val = parseFloat(document.getElementById('impostoVal').value)||0;
+  const status = document.getElementById('impostoStatus').value;
+  const obs = document.getElementById('impostoObs').value.trim();
+  if(!mes){ showErr('impostoErr','Selecione o mês'); return; }
+  if(val<=0){ showErr('impostoErr','Insira um valor maior que zero'); return; }
+  S.impostos.push({ mes, val, status, obs });
+  persist();
+  closeModal('modalAddImposto');
+  renderImpostos();
+  showToast('Imposto salvo','green');
+}
+
+function removeImposto(i){
+  S.impostos.splice(i,1);
+  persist();
+  renderImpostos();
+  showToast('Imposto removido','yellow');
+}
+
+function toggleImpostoStatus(i){
+  S.impostos[i].status = S.impostos[i].status === 'pago' ? 'pendente' : 'pago';
+  persist();
+  renderImpostos();
+  showToast(S.impostos[i].status === 'pago' ? 'Marcado como pago' : 'Reaberto','green');
 }
 
 /* ── Aquisições ─────────────────────────────────────────── */
