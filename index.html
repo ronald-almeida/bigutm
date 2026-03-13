@@ -95,6 +95,9 @@
         <div class="nav-item" data-page="aquisicoes" onclick="goPage('aquisicoes')">
           <span class="nav-icon"></span> Aquisições
         </div>
+        <div class="nav-item" data-page="impostos" onclick="goPage('impostos')">
+          <span class="nav-icon"></span> Impostos
+        </div>
         <div class="nav-item" onclick="openFixoModal('func');closeSidebar()">
           <span class="nav-icon"></span> Funcionários
         </div>
@@ -468,6 +471,58 @@
       </div>
     </section>
 
+
+    <!-- ═══════════════ PÁGINA: IMPOSTOS ═══════════════ -->
+    <section class="page" id="page-impostos">
+
+      <!-- Simulador -->
+      <div class="chip-mes-card" style="margin-bottom:12px;">
+        <div class="cmc-left">
+          <div class="cmc-label">Simulador de Imposto</div>
+          <div class="cmc-note">Estime o imposto do mês com base no faturamento atual</div>
+        </div>
+      </div>
+      <div class="hist-card" style="margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:160px;">
+            <div style="font-size:11px;color:var(--t3);margin-bottom:6px;letter-spacing:1px;text-transform:uppercase;">Alíquota (%)</div>
+            <input class="form-input" type="number" id="impAliquota" step="0.1" placeholder="Ex: 6.0" style="width:100%;" oninput="calcSimuladorImposto()">
+          </div>
+          <div style="flex:1;min-width:160px;">
+            <div style="font-size:11px;color:var(--t3);margin-bottom:6px;letter-spacing:1px;text-transform:uppercase;">Faturamento do Mês</div>
+            <div class="form-input" style="background:var(--glass);cursor:default;" id="impFaturamento">R$ 0,00</div>
+          </div>
+          <div style="flex:1;min-width:160px;">
+            <div style="font-size:11px;color:var(--t3);margin-bottom:6px;letter-spacing:1px;text-transform:uppercase;">Imposto Estimado</div>
+            <div style="font-size:22px;font-weight:700;color:#f6c90e;" id="impEstimado">R$ 0,00</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabela mensal -->
+      <div class="hist-card">
+        <div class="table-top">
+          <div>
+            <div class="sec-title" style="margin-bottom:2px;font-size:14px;">Impostos por Mês</div>
+            <div style="font-size:11px;color:var(--t3)">Registro manual de impostos pagos e em aberto</div>
+          </div>
+          <button class="btn-save" onclick="openAddImposto()">+ Adicionar</button>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th>Mês / Ano</th>
+              <th>Valor</th>
+              <th>Status</th>
+              <th>Obs</th>
+              <th></th>
+            </tr></thead>
+            <tbody id="impostosBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
   </main>
 </div><!-- /.layout -->
 
@@ -659,6 +714,36 @@
   <div class="modal-actions">
     <button class="btn-cancel" onclick="closeModal('modalAddAq')">Cancelar</button>
     <button class="btn-save" onclick="saveAq()">Salvar</button>
+  </div>
+</div></div>
+
+<!-- Modal: Adicionar Imposto -->
+<div class="modal-bg" id="modalAddImposto"><div class="modal">
+  <div class="modal-title">Registro de Imposto</div>
+  <div class="err-box" id="impostoErr"></div>
+  <div class="form-group">
+    <label class="form-label">Mês / Ano</label>
+    <input class="form-input" type="month" id="impostoMes">
+  </div>
+  <div class="form-group">
+    <label class="form-label">Valor (R$)</label>
+    <input class="form-input" type="number" id="impostoVal" step="0.01" placeholder="0,00">
+  </div>
+  <div class="form-group">
+    <label class="form-label">Status</label>
+    <select class="form-input" id="impostoStatus">
+      <option value="pendente">Pendente</option>
+      <option value="pago">Pago</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label class="form-label">Observação (opcional)</label>
+    <input class="form-input" type="text" id="impostoObs" placeholder="Ex: DAS Janeiro, DARF...">
+  </div>
+  <input type="hidden" id="impostoEditIdx">
+  <div class="modal-actions">
+    <button class="btn-cancel" onclick="closeModal('modalAddImposto')">Cancelar</button>
+    <button class="btn-save" onclick="saveImposto()">Salvar</button>
   </div>
 </div></div>
 
