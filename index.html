@@ -98,6 +98,9 @@
         <div class="nav-item" data-page="impostos" onclick="goPage('impostos')">
           <span class="nav-icon"></span> Impostos
         </div>
+        <div class="nav-item" data-page="2fa" onclick="goPage('2fa')">
+          <span class="nav-icon"></span> 2FA
+        </div>
         <div class="nav-item" onclick="openFixoModal('func');closeSidebar()">
           <span class="nav-icon"></span> Funcionários
         </div>
@@ -523,6 +526,19 @@
       </div>
     </section>
 
+
+    <!-- ═══════════════ PÁGINA: 2FA ═══════════════ -->
+    <section class="page" id="page-2fa">
+      <div class="chip-mes-card">
+        <div class="cmc-left">
+          <div class="cmc-label">Códigos 2FA</div>
+          <div class="cmc-note">Guarde seus códigos de autenticação com segurança</div>
+        </div>
+        <button class="btn-save" onclick="openAdd2FA()" style="align-self:center">+ Adicionar</button>
+      </div>
+      <div id="tfaGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:4px;"></div>
+    </section>
+
   </main>
 </div><!-- /.layout -->
 
@@ -744,6 +760,25 @@
   <div class="modal-actions">
     <button class="btn-cancel" onclick="closeModal('modalAddImposto')">Cancelar</button>
     <button class="btn-save" onclick="saveImposto()">Salvar</button>
+  </div>
+</div></div>
+
+<!-- Modal: Adicionar 2FA -->
+<div class="modal-bg" id="modalAdd2FA"><div class="modal">
+  <div class="modal-title">Adicionar Código 2FA</div>
+  <div class="err-box" id="tfaErr"></div>
+  <div class="form-group">
+    <label class="form-label">Nome</label>
+    <input class="form-input" type="text" id="tfaNome" placeholder="Ex: Google Conta X, Meta Ads...">
+  </div>
+  <div class="form-group">
+    <label class="form-label">Código 2FA</label>
+    <input class="form-input" type="text" id="tfaCodigo" placeholder="Ex: sdksdkskd-dksdkskd-kdksk">
+  </div>
+  <input type="hidden" id="tfaEditIdx">
+  <div class="modal-actions">
+    <button class="btn-cancel" onclick="closeModal('modalAdd2FA')">Cancelar</button>
+    <button class="btn-save" onclick="save2FA()">Salvar</button>
   </div>
 </div></div>
 
