@@ -32,6 +32,7 @@ const S = {
   },
   fixos:          { func:{val:0,qtd:0}, cont:{val:0}, escritorio:[], aquisicoes:[] },
   impostos:       [],
+  tfa:            [],
   chipsHistory:   {},
   transactions:   [],
   withdrawals:    [],
@@ -112,6 +113,7 @@ function hydrate(raw){
       if(Array.isArray(sv.fixos.escritorio)) S.fixos.escritorio = sv.fixos.escritorio;
       if(Array.isArray(sv.fixos.aquisicoes))  S.fixos.aquisicoes  = sv.fixos.aquisicoes;
       if(Array.isArray(sv.impostos))              S.impostos          = sv.impostos;
+      if(Array.isArray(sv.tfa))                   S.tfa               = sv.tfa;
     }
 
     // Dicionários de chave-valor
@@ -889,6 +891,69 @@ function checkNewTransactions(newTxs){
   });
 }
 
+
+
+/* ── 2FA ────────────────────────────────────────────────── */
+function render2FA(){
+  const grid = document.getElementById('tfaGrid');
+  if(!grid) return;
+  if(!S.tfa.length){
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">Nenhum código cadastrado.<br>Clique em "+ Adicionar" para começar.</div>`;
+    return;
+  }
+  grid.innerHTML = S.tfa.map((item,i) => `
+    <div style="background:var(--glass2);border:1px solid var(--b2);border-radius:14px;padding:16px 18px;">
+      <div style="font-size:10px;color:rgba(255,255,255,.45);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;">${item.nome}</div>
+      <div style="font-family:var(--font-mono);font-size:13px;color:#fff;word-break:break-all;margin-bottom:12px;">${item.codigo}</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-save" style="flex:1;font-size:10px;padding:6px;" onclick="copiar2FA(${i})">Copiar</button>
+        <button class="fixo-btn" style="color:var(--red);border-color:var(--red);" onclick="remove2FA(${i})">remover</button>
+      </div>
+    </div>`).join('');
+}
+
+function openAdd2FA(){
+  document.getElementById('tfaNome').value='';
+  document.getElementById('tfaCodigo').value='';
+  document.getElementById('tfaEditIdx').value='';
+  showErr('tfaErr','');
+  openModal('modalAdd2FA');
+}
+
+function save2FA(){
+  const nome   = document.getElementById('tfaNome').value.trim();
+  const codigo = document.getElementById('tfaCodigo').value.trim();
+  if(!nome)  { showErr('tfaErr','Insira um nome'); return; }
+  if(!codigo){ showErr('tfaErr','Insira o código'); return; }
+  S.tfa.push({ nome, codigo });
+  persist();
+  closeModal('modalAdd2FA');
+  render2FA();
+  showToast('Código 2FA salvo','green');
+}
+
+function remove2FA(i){
+  S.tfa.splice(i,1);
+  persist();
+  render2FA();
+  showToast('Código removido','yellow');
+}
+
+function copiar2FA(i){
+  const codigo = S.tfa[i].codigo;
+  navigator.clipboard.writeText(codigo).then(()=>{
+    showToast('Código copiado!','green');
+  }).catch(()=>{
+    // fallback
+    const el = document.createElement('textarea');
+    el.value = codigo;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    showToast('Código copiado!','green');
+  });
+}
 
 /* ── Impostos ───────────────────────────────────────────── */
 function renderImpostos(){
