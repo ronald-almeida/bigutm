@@ -498,6 +498,12 @@ function setSource(src){
    CALC
    ============================================================ */
 function calc(txs,wds,from,to){
+  // Aplica filtro de data
+  if(!from) from = document.getElementById('dateFrom')?.value || '';
+  if(!to)   to   = document.getElementById('dateTo')?.value   || '';
+  txs = filterDate(txs, from, to);
+  wds = filterDate(wds, from, to);
+
   const sum=arr=>arr.reduce((a,t)=>a+((t.amount||0)/100),0);
   const paid=txs.filter(t=>isPaid(t.status)), pending=txs.filter(t=>isPend(t.status)), refunded=txs.filter(t=>isRef(t.status));
   const wdPaid=wds.filter(w=>isWithd(w.status));
