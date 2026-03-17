@@ -101,6 +101,9 @@
         <div class="nav-item" data-page="2fa" onclick="goPage('2fa')">
           <span class="nav-icon"></span> 2FA
         </div>
+        <div class="nav-item" data-page="disparos" onclick="goPage('disparos')">
+          <span class="nav-icon"></span> Disparos
+        </div>
         <div class="nav-item" onclick="openFixoModal('func');closeSidebar()">
           <span class="nav-icon"></span> Funcionários
         </div>
@@ -539,6 +542,45 @@
       <div id="tfaGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:4px;"></div>
     </section>
 
+
+    <!-- ═══════════════ PÁGINA: DISPAROS ═══════════════ -->
+    <section class="page" id="page-disparos">
+
+      <!-- Resumo do mês -->
+      <div class="chip-mes-card">
+        <div class="cmc-left">
+          <div class="cmc-label">Total do Mês</div>
+          <div class="cmc-val" id="disparosTotalMes">0</div>
+          <div class="cmc-note" id="disparosMesLabel">—</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;align-self:center;">
+          <select class="form-input" id="disparosMesSel" onchange="renderDisparos()" style="font-size:11px;padding:6px 10px;"></select>
+          <button class="btn-save" onclick="openAddDisparo()">+ Registrar</button>
+        </div>
+      </div>
+
+      <!-- Tabela diária -->
+      <div class="hist-card">
+        <div class="table-top">
+          <div>
+            <div class="sec-title" style="margin-bottom:2px;font-size:14px;">Registros Diários</div>
+            <div style="font-size:11px;color:var(--t3)">Histórico de disparos por dia</div>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th>Data</th>
+              <th>Qtd Enviada</th>
+              <th>Obs</th>
+              <th></th>
+            </tr></thead>
+            <tbody id="disparosBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
   </main>
 </div><!-- /.layout -->
 
@@ -779,6 +821,28 @@
   <div class="modal-actions">
     <button class="btn-cancel" onclick="closeModal('modalAdd2FA')">Cancelar</button>
     <button class="btn-save" onclick="save2FA()">Salvar</button>
+  </div>
+</div></div>
+
+<!-- Modal: Registrar Disparo -->
+<div class="modal-bg" id="modalAddDisparo"><div class="modal">
+  <div class="modal-title">Registrar Disparos</div>
+  <div class="err-box" id="disparoErr"></div>
+  <div class="form-group">
+    <label class="form-label">Data</label>
+    <input class="form-input" type="date" id="disparoData">
+  </div>
+  <div class="form-group">
+    <label class="form-label">Quantidade Enviada</label>
+    <input class="form-input" type="number" id="disparoQtd" placeholder="Ex: 500">
+  </div>
+  <div class="form-group">
+    <label class="form-label">Observação (opcional)</label>
+    <input class="form-input" type="text" id="disparoObs" placeholder="Ex: Campanha Black Friday...">
+  </div>
+  <div class="modal-actions">
+    <button class="btn-cancel" onclick="closeModal('modalAddDisparo')">Cancelar</button>
+    <button class="btn-save" onclick="saveDisparo()">Salvar</button>
   </div>
 </div></div>
 
