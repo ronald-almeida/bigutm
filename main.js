@@ -112,11 +112,13 @@ function hydrate(raw){
       if(sv.fixos.func) Object.assign(S.fixos.func, sv.fixos.func);
       if(sv.fixos.cont) Object.assign(S.fixos.cont, sv.fixos.cont);
       if(Array.isArray(sv.fixos.escritorio)) S.fixos.escritorio = sv.fixos.escritorio;
-      if(Array.isArray(sv.fixos.aquisicoes))  S.fixos.aquisicoes  = sv.fixos.aquisicoes;
-      if(Array.isArray(sv.impostos))              S.impostos          = sv.impostos;
-      if(Array.isArray(sv.tfa))                   S.tfa               = sv.tfa;
-      if(Array.isArray(sv.disparos))              S.disparos          = sv.disparos;
+      if(Array.isArray(sv.fixos.aquisicoes)) S.fixos.aquisicoes = sv.fixos.aquisicoes;
     }
+
+    // Arrays raiz
+    if(Array.isArray(sv.impostos)) S.impostos = sv.impostos;
+    if(Array.isArray(sv.tfa))      S.tfa      = sv.tfa;
+    if(Array.isArray(sv.disparos)) S.disparos = sv.disparos;
 
     // Dicionários de chave-valor
     if(sv.metas        && typeof sv.metas        === 'object') S.metas        = sv.metas;
