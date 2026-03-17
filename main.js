@@ -33,6 +33,7 @@ const S = {
   fixos:          { func:{val:0,qtd:0}, cont:{val:0}, escritorio:[], aquisicoes:[] },
   impostos:       [],
   tfa:            [],
+  disparos:       [],
   chipsHistory:   {},
   transactions:   [],
   withdrawals:    [],
@@ -114,6 +115,7 @@ function hydrate(raw){
       if(Array.isArray(sv.fixos.aquisicoes))  S.fixos.aquisicoes  = sv.fixos.aquisicoes;
       if(Array.isArray(sv.impostos))              S.impostos          = sv.impostos;
       if(Array.isArray(sv.tfa))                   S.tfa               = sv.tfa;
+      if(Array.isArray(sv.disparos))              S.disparos          = sv.disparos;
     }
 
     // Dicionários de chave-valor
@@ -892,6 +894,89 @@ function checkNewTransactions(newTxs){
 }
 
 
+
+
+/* ── Disparos ───────────────────────────────────────────── */
+const MESES_LABEL = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+function disparosMesAtual(){
+  const now = new Date();
+  return now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+}
+
+function renderDisparosMesSel(){
+  const sel = document.getElementById('disparosMesSel');
+  if(!sel) return;
+  // Coleta meses únicos dos registros + mês atual
+  const meses = new Set(S.disparos.map(d=>d.data.slice(0,7)));
+  meses.add(disparosMesAtual());
+  const sorted = Array.from(meses).sort((a,b)=>b.localeCompare(a));
+  sel.innerHTML = sorted.map(m=>{
+    const [y,mo] = m.split('-');
+    return `<option value="${m}">${MESES_LABEL[parseInt(mo)-1]} ${y}</option>`;
+  }).join('');
+}
+
+function renderDisparos(){
+  renderDisparosMesSel();
+  const sel = document.getElementById('disparosMesSel');
+  const mes = sel ? sel.value : disparosMesAtual();
+  const [y,mo] = mes.split('-');
+  const mesNome = MESES_LABEL[parseInt(mo)-1] + ' ' + y;
+
+  const registros = S.disparos.filter(d=>d.data.startsWith(mes)).sort((a,b)=>b.data.localeCompare(a.data));
+  const total = registros.reduce((a,d)=>a+(d.qtd||0),0);
+
+  set('disparosTotalMes', total.toLocaleString('pt-BR'));
+  set('disparosMesLabel', mesNome + ' — ' + registros.length + ' registro(s)');
+
+  const tbody = document.getElementById('disparosBody');
+  if(!tbody) return;
+  if(!registros.length){
+    tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state">Nenhum disparo registrado para ${mesNome}.</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = registros.map((item,i)=>{
+    const [ay,am,ad] = item.data.split('-');
+    const dataFmt = `${MESES_LABEL[parseInt(am)-1]} — dia ${parseInt(ad)}`;
+    return `<tr>
+      <td>${dataFmt}</td>
+      <td style="color:#00ff87;font-weight:600;">${item.qtd.toLocaleString('pt-BR')} enviadas</td>
+      <td style="color:var(--t3);font-size:11px;">${item.obs||'—'}</td>
+      <td><button class="fixo-btn" style="color:var(--red);border-color:var(--red);" onclick="removeDisparo('${item._id}')">remover</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function openAddDisparo(){
+  const now = new Date();
+  document.getElementById('disparoData').value = now.toISOString().slice(0,10);
+  document.getElementById('disparoQtd').value = '';
+  document.getElementById('disparoObs').value = '';
+  showErr('disparoErr','');
+  openModal('modalAddDisparo');
+}
+
+function saveDisparo(){
+  const data = document.getElementById('disparoData').value;
+  const qtd  = parseInt(document.getElementById('disparoQtd').value)||0;
+  const obs  = document.getElementById('disparoObs').value.trim();
+  if(!data){ showErr('disparoErr','Selecione a data'); return; }
+  if(qtd<=0){ showErr('disparoErr','Insira uma quantidade maior que zero'); return; }
+  const _id = Date.now().toString();
+  S.disparos.push({ _id, data, qtd, obs });
+  persist();
+  closeModal('modalAddDisparo');
+  renderDisparos();
+  showToast('Disparo registrado','green');
+}
+
+function removeDisparo(id){
+  S.disparos = S.disparos.filter(d=>d._id!==id);
+  persist();
+  renderDisparos();
+  showToast('Registro removido','yellow');
+}
 
 /* ── 2FA ────────────────────────────────────────────────── */
 function render2FA(){
