@@ -182,7 +182,17 @@ function checkChipPrompt(){
 function brl(n){ return 'R$ '+Math.abs(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function brlS(n){ if(n>=1e6) return 'R$'+(n/1e6).toFixed(1).replace('.',',')+'M'; if(n>=1e3) return 'R$'+(n/1e3).toFixed(1).replace('.',',')+'k'; return 'R$'+n.toFixed(0); }
 function pct(v,t){ return t>0?((v/t)*100).toFixed(1):'0.0'; }
-function fmtDt(iso){ if(!iso) return '—'; const d=new Date(iso); if(isNaN(d)) return iso; return d.toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'}); }
+function fmtDt(iso){ 
+  if(!iso) return '—'; 
+  // Se for YYYY-MM-DD (sem horário), interpreta como local para evitar UTC-3 shift
+  if(/^\d{4}-\d{2}-\d{2}$/.test(iso)){
+    const [y,m,d] = iso.split('-').map(Number);
+    return new Date(y,m-1,d).toLocaleDateString('pt-BR');
+  }
+  const d=new Date(iso); 
+  if(isNaN(d)) return iso; 
+  return d.toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'}); 
+}
 function set(id,v){ const e=document.getElementById(id); if(e) e.textContent=v; }
 function fmt(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 
