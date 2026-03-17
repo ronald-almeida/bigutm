@@ -440,8 +440,11 @@ const UmbrelaPag = {
 
 function filterDate(arr,from,to){
   if(!from||!to) return arr;
-  const f=new Date(from); f.setHours(0,0,0,0);
-  const t=new Date(to);   t.setHours(23,59,59,999);
+  // Usa horário local para evitar problema de UTC-3
+  const [fy,fm,fd] = from.split('-').map(Number);
+  const [ty,tm,td] = to.split('-').map(Number);
+  const f = new Date(fy,fm-1,fd,0,0,0,0);
+  const t = new Date(ty,tm-1,td,23,59,59,999);
   return arr.filter(x=>{
     // tenta createdAt, transferredAt, processedAt — usa o primeiro válido
     const raw = x.createdAt || x.transferredAt || x.processedAt || x.updatedAt || '';
