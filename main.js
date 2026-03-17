@@ -184,7 +184,7 @@ function brlS(n){ if(n>=1e6) return 'R$'+(n/1e6).toFixed(1).replace('.',',')+'M'
 function pct(v,t){ return t>0?((v/t)*100).toFixed(1):'0.0'; }
 function fmtDt(iso){ if(!iso) return '—'; const d=new Date(iso); return isNaN(d)?iso:d.toLocaleDateString('pt-BR'); }
 function set(id,v){ const e=document.getElementById(id); if(e) e.textContent=v; }
-function fmt(d){ return d.toISOString().split('T')[0]; }
+function fmt(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 
 const isPaid  = s=>{ const u=(s||'').toUpperCase(); return ['PAID','APPROVED','COMPLETE','COMPLETED','SUCCESS','CAPTURED'].includes(u); };
 const isPend  = s=>{ const u=(s||'').toUpperCase(); return ['PENDING','WAITING','PROCESSING','PENDING_ANALYSIS','PENDING_QUEUE'].includes(u); };
