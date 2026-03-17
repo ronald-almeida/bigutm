@@ -1332,7 +1332,7 @@ function init(){
     if(S.keys.umbrella) document.getElementById('inputApiUmbrella').value=S.keys.umbrella;
     updateApiStatus();
     goPage('resultado');
-    renderChart(); renderTable(); renderWithdrawals(); updateFixosDisplay(); renderEscritorio();
+    renderChart(); renderTable(); renderWithdrawals(); updateFixosDisplay(); renderEscritorio(); render2FA(); renderAquisicoes(); renderImpostos(); renderDisparos();
     renderMeta(calcBrutoAtual()); renderHistoricoMetas(); renderChipHistorico();
     if(S.transactions.length) calc(S.transactions,S.withdrawals,'','');
     checkMetaPrompt(); checkChipPrompt();
