@@ -1519,6 +1519,62 @@ function deleteEscr(id){
   showToast('Gasto removido','yellow');
 }
 
+/* ── Auth ───────────────────────────────────────────────── */
+const AUTH_KEY   = 'bigutm_auth';
+const AUTH_DAYS  = 60;
+// Senha em hash simples (SHA-like via btoa) — troque o valor abaixo
+// Senha padrão: bigutm2024 → para trocar, gere: btoa('suasenha')
+const SENHA_HASH = btoa('bigutm2024');
+
+function checkSession(){
+  try{
+    const raw = localStorage.getItem(AUTH_KEY);
+    if(!raw) return false;
+    const { hash, exp } = JSON.parse(raw);
+    if(Date.now() > exp) { localStorage.removeItem(AUTH_KEY); return false; }
+    return hash === SENHA_HASH;
+  }catch(e){ return false; }
+}
+
+function saveSession(){
+  const exp = Date.now() + (AUTH_DAYS * 24 * 60 * 60 * 1000);
+  localStorage.setItem(AUTH_KEY, JSON.stringify({ hash: SENHA_HASH, exp }));
+}
+
+function checkLogin(){
+  const input = document.getElementById('loginInput');
+  const err   = document.getElementById('loginErr');
+  if(!input) return;
+  const val = input.value.trim();
+  if(btoa(val) === SENHA_HASH){
+    saveSession();
+    showApp();
+  } else {
+    err.style.display = 'block';
+    input.value = '';
+    input.focus();
+    setTimeout(()=>{ err.style.display='none'; }, 3000);
+  }
+}
+
+function showApp(){
+  const login = document.getElementById('loginScreen');
+  const app   = document.getElementById('appLayout');
+  if(login) login.style.display = 'none';
+  if(app)   app.style.display   = '';
+  if(window._pendingInit){ window._pendingInit=false; init(); }
+}
+
+function initAuth(){
+  if(checkSession()){
+    showApp();
+  } else {
+    const login = document.getElementById('loginScreen');
+    if(login) login.style.display = 'flex';
+    setTimeout(()=>{ document.getElementById('loginInput')?.focus(); }, 100);
+  }
+}
+
 function init(){
   // Carrega do servidor primeiro, localStorage como fallback
   hydrateFromServer().then(raw => {
