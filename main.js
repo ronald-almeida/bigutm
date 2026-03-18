@@ -932,13 +932,25 @@ let _recValor = 0;
 function getLeadsFromTx(){
   const minMinutes = _recMinTime;
   const now = Date.now();
-  const cutoff = minMinutes * 60 * 1000;
+  const isMonth = (document.getElementById('recMinTime')?.value === 'month');
+  let startOfMonth = 0, endOfMonth = Infinity;
+  if(isMonth){
+    const d = new Date();
+    startOfMonth = new Date(d.getFullYear(), d.getMonth(), 1).getTime();
+    endOfMonth   = new Date(d.getFullYear(), d.getMonth()+1, 0, 23, 59, 59, 999).getTime();
+  }
+  const window = minMinutes * 60 * 1000;
   const seen = new Set();
   return S.transactions
     .filter(tx => {
       if(tx.status !== 'WAITING_PAYMENT') return false;
-      const age = now - new Date(tx.createdAt).getTime();
-      if(age < cutoff) return false;
+      const txTime = new Date(tx.createdAt).getTime();
+      if(isMonth){
+        if(txTime < startOfMonth || txTime > endOfMonth) return false;
+      } else {
+        const age = now - txTime;
+        if(age > window) return false;
+      }
       if(seen.has(tx.id)) return false;
       seen.add(tx.id);
       return true;
@@ -966,7 +978,7 @@ function renderRecuperacao(){
   const selTime = document.getElementById('recMinTime');
   const selStatus = document.getElementById('recFiltroStatus');
   const inpValor = document.getElementById('recFiltroValor');
-  if(selTime)   _recMinTime  = parseInt(selTime.value)   || 30;
+  if(selTime)   _recMinTime  = selTime.value === 'month' ? 'month' : (parseInt(selTime.value) || 720);
   if(selStatus) _recStatus   = selStatus.value           || 'todos';
   if(inpValor)  _recValor    = parseFloat(inpValor.value)||0;
   const filtroStatus = _recStatus;
