@@ -111,6 +111,9 @@
           <span class="nav-icon"></span> Notificações
           <span class="nav-badge" id="notifBadge" style="display:none;">0</span>
         </div>
+        <div class="nav-item" onclick="syncNotifConfigUI();openModal('modalNotifConfig')">
+          <span class="nav-icon"></span> Config Notif
+        </div>
         <div class="nav-item" onclick="openFixoModal('func');closeSidebar()">
           <span class="nav-icon"></span> Funcionários
         </div>
@@ -691,7 +694,6 @@
           <button class="btn-cancel" onclick="marcarTodasLidas()" style="font-size:11px;padding:6px 12px;">✓ Marcar todas lidas</button>
           <button class="btn-cancel" onclick="limparNotificacoes()" style="font-size:11px;padding:6px 12px;color:var(--red);border-color:var(--red);">Limpar</button>
           <button id="btnAtivarPush" onclick="ativarPushNotif()" style="font-size:11px;padding:8px 14px;background:var(--glass2);border:1px solid var(--b2);border-radius:8px;color:#fff;cursor:pointer;">🔔 Push</button>
-          <button onclick="openModal('modalNotifConfig')" style="font-size:11px;padding:8px 14px;background:var(--glass2);border:1px solid var(--b2);border-radius:8px;color:#fff;cursor:pointer;">⚙ Config</button>
         </div>
       </div>
 
