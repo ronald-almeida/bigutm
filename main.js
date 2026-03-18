@@ -1547,78 +1547,26 @@ function deleteEscr(id){
 }
 
 /* ── Auth ───────────────────────────────────────────────── */
-const AUTH_KEY   = 'bigutm_token';
 const SENHA_HASH = btoa('bigutm2024');
-const AUTH_URL   = 'https://bigcompany.shop/painelv/auth.php';
+const AUTH_URL   = 'https://bigcompany.shop/painelv/login.php';
 
-// IndexedDB para persistência máxima no iOS PWA
-const DB_NAME = 'bigutm_db', DB_STORE = 'auth';
-let _dbReady = null;
-
-function openDB(){
-  if(_dbReady) return _dbReady;
-  _dbReady = new Promise((res,rej)=>{
-    const req = indexedDB.open(DB_NAME, 1);
-    req.onupgradeneeded = e => e.target.result.createObjectStore(DB_STORE);
-    req.onsuccess = e => res(e.target.result);
-    req.onerror   = () => rej();
-  });
-  return _dbReady;
-}
-
-async function getToken(){
-  try{
-    const db = await openDB();
-    return await new Promise((res)=>{
-      const tx  = db.transaction(DB_STORE,'readonly');
-      const req = tx.objectStore(DB_STORE).get('token');
-      req.onsuccess = () => res(req.result||'');
-      req.onerror   = () => res('');
-    });
-  }catch(e){
-    return localStorage.getItem(AUTH_KEY)||'';
-  }
-}
-
-async function saveToken(token){
-  try{
-    const db = await openDB();
-    await new Promise((res)=>{
-      const tx  = db.transaction(DB_STORE,'readwrite');
-      tx.objectStore(DB_STORE).put(token,'token');
-      tx.oncomplete = res;
-    });
-  }catch(e){}
-  try{ localStorage.setItem(AUTH_KEY,token); }catch(e){}
-}
-
-function clearToken(){
-  openDB().then(db=>{ const tx=db.transaction(DB_STORE,'readwrite'); tx.objectStore(DB_STORE).delete('token'); });
-  try{ localStorage.removeItem(AUTH_KEY); }catch(e){}
-}
+// Auth via PHP session — sem storage local necessário
 
 async function checkSession(){
-  const token = await getToken();
-  if(!token) return false;
   try{
-    const r = await fetch(AUTH_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'check', token}) });
+    const r = await fetch(AUTH_URL + '?action=check', { credentials: 'include' });
     const d = await r.json();
     return d.ok === true;
-  }catch(e){ 
-    // Se servidor offline, valida localmente
-    return token.length > 0;
-  }
+  }catch(e){ return false; }
 }
 
-async function saveSession(){
-  try{
-    const r = await fetch(AUTH_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'save'}) });
-    const d = await r.json();
-    if(d.token) await saveToken(d.token);
-  }catch(e){
-    // Fallback local
-    await saveToken(btoa(Date.now().toString()));
-  }
+async function saveSession(senha){
+  const form = new FormData();
+  form.append('action','login');
+  form.append('senha', senha);
+  const r = await fetch(AUTH_URL, { method:'POST', credentials:'include', body: form });
+  const d = await r.json();
+  return d.ok === true;
 }
 
 function checkLogin(){
@@ -1626,23 +1574,21 @@ function checkLogin(){
   const err   = document.getElementById('loginErr');
   if(!input) return;
   const val = input.value.trim();
-  if(btoa(val) === SENHA_HASH){
-    saveSession().then(()=>showApp());
-  } else {
+  // Valida localmente primeiro (rápido)
+  if(btoa(val) !== SENHA_HASH){
     err.style.display = 'block';
-    input.value = '';
-    input.focus();
+    input.value = ''; input.focus();
     setTimeout(()=>{ err.style.display='none'; }, 3000);
+    return;
   }
+  // Salva sessão no servidor
+  saveSession(val).then(ok => {
+    if(ok) showApp();
+    else { err.style.display='block'; setTimeout(()=>{ err.style.display='none'; },3000); }
+  }).catch(()=>showApp()); // Se servidor offline, entra assim mesmo
 }
 
-function showApp(){
-  const login = document.getElementById('loginScreen');
-  const app   = document.getElementById('appLayout');
-  if(login) login.style.display = 'none';
-  if(app)   app.style.display   = '';
-  init();
-}
+
 
 function initAuth(){
   checkSession().then(valid => {
