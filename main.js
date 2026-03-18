@@ -925,13 +925,7 @@ function enableNotifications(){
 }
 
 function notifyTx(tx){
-  if(!('Notification' in window) || Notification.permission !== 'granted') return;
-  const isPaid = tx.status === 'PAID' || tx.status === 'AUTHORIZED';
-  const title  = isPaid ? 'VENDA APROVADA' : 'VENDA GERADA';
-  const valor  = brl((tx.amount||0)/100);
-  const body   = `Venda >> ${valor}`;
-  const iconUrl = 'https://ronald-almeida.github.io/bigutm/logo.png';
-  new Notification(title, { body, icon: iconUrl, badge: iconUrl });
+  // Notificações gerenciadas pelo servidor de push — desativado no cliente
 }
 
 function checkNewTransactions(newTxs){
