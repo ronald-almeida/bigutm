@@ -104,6 +104,9 @@
         <div class="nav-item" data-page="disparos" onclick="goPage('disparos')">
           <span class="nav-icon"></span> Disparos
         </div>
+        <div class="nav-item" data-page="recuperacao" onclick="goPage('recuperacao')">
+          <span class="nav-icon"></span> Recuperação
+        </div>
         <div class="nav-item" onclick="openFixoModal('func');closeSidebar()">
           <span class="nav-icon"></span> Funcionários
         </div>
@@ -578,6 +581,94 @@
             <tbody id="disparosBody"></tbody>
           </table>
         </div>
+      </div>
+    </section>
+
+
+    <!-- ═══════════════ PÁGINA: RECUPERAÇÃO DE VENDAS ═══════════════ -->
+    <section class="page" id="page-recuperacao">
+
+      <!-- Copy Editor -->
+      <div class="hist-card" style="margin-bottom:14px;">
+        <div class="table-top" style="margin-bottom:10px;">
+          <div>
+            <div class="sec-title" style="font-size:14px;margin-bottom:2px;">Mensagem de Recuperação</div>
+            <div style="font-size:11px;color:var(--t3)">Variáveis: {nome} {cpf} {telefone} {valor} {data}</div>
+          </div>
+          <button class="btn-save" onclick="salvarCopyRec()">Salvar</button>
+        </div>
+        <textarea id="recCopy" rows="4" style="width:100%;background:var(--glass);border:1px solid var(--b2);border-radius:8px;padding:10px 14px;color:#fff;font-family:var(--font-mono);font-size:12px;resize:vertical;outline:none;line-height:1.6;">Olá {nome}, identificamos que você iniciou um pagamento de R$ {valor} mas não foi concluído. Clique aqui para finalizar sua compra!</textarea>
+      </div>
+
+      <!-- Filtros -->
+      <div class="hist-card" style="margin-bottom:14px;">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+          <div>
+            <div style="font-size:10px;color:var(--t3);margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;">Abandono mínimo</div>
+            <select class="form-input" id="recMinTime" style="font-size:11px;padding:6px 10px;" onchange="renderRecuperacao()">
+              <option value="10">10 minutos</option>
+              <option value="30" selected>30 minutos</option>
+              <option value="60">1 hora</option>
+              <option value="120">2 horas</option>
+              <option value="1440">24 horas</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--t3);margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;">Status</div>
+            <select class="form-input" id="recFiltroStatus" style="font-size:11px;padding:6px 10px;" onchange="renderRecuperacao()">
+              <option value="todos">Todos</option>
+              <option value="pendente">Pendente</option>
+              <option value="recuperado">Recuperado</option>
+              <option value="ignorado">Ignorado</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--t3);margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;">Valor mín (R$)</div>
+            <input class="form-input" type="number" id="recFiltroValor" style="font-size:11px;padding:6px 10px;width:100px;" placeholder="0" oninput="renderRecuperacao()">
+          </div>
+          <div style="margin-left:auto;display:flex;gap:8px;align-self:flex-end;">
+            <button class="btn-save" onclick="exportarLeadsCSV()" style="font-size:10px;padding:6px 12px;">↓ Exportar CSV</button>
+            <button class="btn-save" onclick="renderRecuperacao()" style="font-size:10px;padding:6px 12px;">↻ Atualizar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumo -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px;">
+        <div style="background:var(--glass2);border:1px solid var(--b2);border-radius:12px;padding:14px 16px;">
+          <div style="font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;">Total Leads</div>
+          <div style="font-size:22px;font-weight:700;color:#fff;" id="recTotalLeads">0</div>
+        </div>
+        <div style="background:var(--glass2);border:1px solid var(--b2);border-radius:12px;padding:14px 16px;">
+          <div style="font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;">Valor em Aberto</div>
+          <div style="font-size:22px;font-weight:700;color:#f6c90e;" id="recValorAberto">R$ 0,00</div>
+        </div>
+        <div style="background:var(--glass2);border:1px solid var(--b2);border-radius:12px;padding:14px 16px;">
+          <div style="font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;">Recuperados</div>
+          <div style="font-size:22px;font-weight:700;color:#00ff87;" id="recTotalRecuperados">0</div>
+        </div>
+        <div style="background:var(--glass2);border:1px solid var(--b2);border-radius:12px;padding:14px 16px;">
+          <div style="font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;">Ignorados</div>
+          <div style="font-size:22px;font-weight:700;color:var(--t3);" id="recTotalIgnorados">0</div>
+        </div>
+      </div>
+
+      <!-- Tabela -->
+      <div class="hist-card">
+        <div class="table-scroll">
+          <table style="min-width:800px;">
+            <thead><tr>
+              <th>Cliente</th>
+              <th>Contato</th>
+              <th>Valor</th>
+              <th>Data PIX</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr></thead>
+            <tbody id="recBody"></tbody>
+          </table>
+        </div>
+        <div id="recPaginacao" style="display:flex;justify-content:center;gap:8px;margin-top:14px;flex-wrap:wrap;"></div>
       </div>
     </section>
 
