@@ -978,6 +978,24 @@ function criarNotificacao(title, message, tipo, actionUrl){
   return notif;
 }
 
+
+function salvarNotifConfig(){
+  S.notifConfig.aprovadas   = document.getElementById('notifToggleAprovadas')?.checked ?? true;
+  S.notifConfig.pendentes   = document.getElementById('notifTogglePendentes')?.checked ?? true;
+  S.notifConfig.recuperacao = document.getElementById('notifToggleRecuperacao')?.checked ?? true;
+  persist();
+  showToast('Configurações salvas','green');
+}
+
+function syncNotifConfigUI(){
+  const ta = document.getElementById('notifToggleAprovadas');
+  const tp = document.getElementById('notifTogglePendentes');
+  const tr = document.getElementById('notifToggleRecuperacao');
+  if(ta) ta.checked = S.notifConfig.aprovadas !== false;
+  if(tp) tp.checked = S.notifConfig.pendentes !== false;
+  if(tr) tr.checked = S.notifConfig.recuperacao !== false;
+}
+
 function updateNotifBadge(){
   const naoLidas = (S.notificacoes||[]).filter(n=>!n.read).length;
   const badge = document.getElementById('notifBadge');
@@ -1013,16 +1031,17 @@ function renderNotificacoes(){
     const dt   = fmtDt(n.created_at);
     const hora = new Date(n.created_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',timeZone:'America/Sao_Paulo'});
     const op   = n.read ? '0.5' : '1';
-    return '<div onclick="lerNotificacao(''+n.id+'')" style="background:var(--glass2);border:1px solid '+(n.read?'var(--b1)':tipo.color+'44')+';border-radius:12px;padding:14px 16px;cursor:pointer;opacity:'+op+';transition:.15s;position:relative;">'
-      +(!n.read?'<div style="position:absolute;top:14px;right:36px;width:7px;height:7px;border-radius:50%;background:'+tipo.color+';"></div>':'')
-      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'
-      +'<span style="font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:'+tipo.color+';background:'+tipo.color+'22;padding:2px 8px;border-radius:20px;">'+tipo.label+'</span>'
-      +'<span style="font-size:10px;color:var(--t3);">'+dt+' · '+hora+'</span>'
-      +'<button onclick="event.stopPropagation();deletarNotificacao(''+n.id+'')" style="margin-left:auto;background:transparent;border:none;color:var(--t3);cursor:pointer;font-size:13px;padding:0 4px;">✕</button>'
-      +'</div>'
-      +'<div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:3px;">'+n.title+'</div>'
-      +'<div style="font-size:12px;color:rgba(255,255,255,.55);">'+n.message+'</div>'
-      +'</div>';
+    const dot  = !n.read ? `<div style="position:absolute;top:14px;right:36px;width:7px;height:7px;border-radius:50%;background:${tipo.color};"></div>` : '';
+    return `<div onclick="lerNotificacao('${n.id}')" style="background:var(--glass2);border:1px solid ${n.read?'var(--b1)':tipo.color+'44'};border-radius:12px;padding:14px 16px;cursor:pointer;opacity:${op};transition:.15s;position:relative;">
+      ${dot}
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <span style="font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:${tipo.color};background:${tipo.color}22;padding:2px 8px;border-radius:20px;">${tipo.label}</span>
+        <span style="font-size:10px;color:var(--t3);">${dt} · ${hora}</span>
+        <button onclick="event.stopPropagation();deletarNotificacao('${n.id}')" style="margin-left:auto;background:transparent;border:none;color:var(--t3);cursor:pointer;font-size:13px;padding:0 4px;">✕</button>
+      </div>
+      <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:3px;">${n.title}</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.55);">${n.message}</div>
+    </div>`;
   }).join('');
   const lm = document.getElementById('notifLoadMore');
   if(lm) lm.style.display = slice.length < list.length ? '' : 'none';
@@ -1067,12 +1086,14 @@ function processarNotifTx(newTxs){
     const valor = 'R$ '+brl((tx.amount||0)/100);
     const nome  = tx.customer&&tx.customer.name ? tx.customer.name : 'Cliente';
     if(tx.status==='PAID'||tx.status==='AUTHORIZED'){
-      criarNotificacao('Venda Aprovada ✓', nome+' — '+valor, 'financeiro');
+      if(S.notifConfig.aprovadas !== false) criarNotificacao('Venda Aprovada ✓', nome+' — '+valor, 'financeiro');
     } else if(tx.status==='WAITING_PAYMENT'){
-      criarNotificacao('PIX Gerado', nome+' — '+valor+' aguardando pagamento', 'financeiro');
-      agendarRecuperacao(tx, 5*60*1000,   1, valor, nome);
-      agendarRecuperacao(tx, 30*60*1000,  2, valor, nome);
-      agendarRecuperacao(tx, 120*60*1000, 3, valor, nome);
+      if(S.notifConfig.pendentes !== false) criarNotificacao('PIX Gerado', nome+' — '+valor+' aguardando pagamento', 'financeiro');
+      if(S.notifConfig.recuperacao !== false){
+        agendarRecuperacao(tx, 5*60*1000,   1, valor, nome);
+        agendarRecuperacao(tx, 30*60*1000,  2, valor, nome);
+        agendarRecuperacao(tx, 120*60*1000, 3, valor, nome);
+      }
     }
   });
 }
