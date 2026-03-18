@@ -56,7 +56,42 @@
   </div>
 </header>
 
-<div class="layout">
+<!-- ════ TELA DE LOGIN ════ -->
+<div id="loginScreen" style="display:none;position:fixed;inset:0;z-index:9999;background:#080f1a;display:flex;align-items:center;justify-content:center;">
+  <div style="width:100%;max-width:380px;padding:0 24px;">
+    <!-- Logo -->
+    <div style="text-align:center;margin-bottom:36px;">
+      <svg width="52" height="52" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin:0 auto 14px;display:block;">
+        <rect width="34" height="34" rx="10" fill="url(#loginLogoGrad)"/>
+        <path d="M10 17L14 10L18 17L22 13L26 17" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="26" cy="17" r="2.5" fill="#00ff87"/>
+        <defs>
+          <linearGradient id="loginLogoGrad" x1="0" y1="0" x2="34" y2="34" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#0a1628"/>
+            <stop offset="100%" stop-color="#0d2137"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;letter-spacing:2px;color:#fff;">BIG<span style="color:#00ff87;">UTM</span></div>
+      <div style="font-size:11px;color:rgba(255,255,255,.3);letter-spacing:2px;text-transform:uppercase;margin-top:4px;">Painel Financeiro</div>
+    </div>
+
+    <!-- Card -->
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:28px 24px;">
+      <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:20px;text-align:center;">Insira sua senha para continuar</div>
+      <div id="loginErr" style="display:none;background:rgba(255,77,109,.1);border:1px solid rgba(255,77,109,.3);border-radius:8px;padding:10px 14px;font-size:12px;color:#ff4d6d;margin-bottom:14px;text-align:center;">Senha incorreta</div>
+      <input id="loginInput" type="password" placeholder="Senha" 
+        style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:13px 16px;color:#fff;font-size:14px;outline:none;box-sizing:border-box;margin-bottom:12px;"
+        onkeydown="if(event.key==='Enter')checkLogin()">
+      <button onclick="checkLogin()" 
+        style="width:100%;background:#00ff87;color:#000;border:none;border-radius:10px;padding:13px;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.5px;">
+        Entrar
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="layout" style="display:none;" id="appLayout">
 
   <!-- ══ SIDEBAR ══════════════════════════════════════════ -->
   <aside class="sidebar" id="sidebar">
