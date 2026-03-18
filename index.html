@@ -979,48 +979,33 @@
 <!-- Modal: Configurações de Notificação -->
 <div class="modal-bg" id="modalNotifConfig"><div class="modal">
   <div class="modal-title">🔔 Configurações de Notificação</div>
-  <div style="display:flex;flex-direction:column;gap:14px;margin-top:4px;">
+  <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
     <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--b1);">
       <div>
         <div style="font-size:13px;color:#fff;font-weight:500;">Vendas Aprovadas</div>
         <div style="font-size:11px;color:var(--t3);margin-top:2px;">Notificar quando PIX for pago</div>
       </div>
-      <label style="position:relative;display:inline-block;width:42px;height:24px;">
-        <input type="checkbox" id="notifToggleAprovadas" onchange="salvarNotifConfig()" style="opacity:0;width:0;height:0;">
-        <span onclick="document.getElementById('notifToggleAprovadas').click()" id="sliderAprovadas" style="position:absolute;cursor:pointer;inset:0;background:#2d3748;border-radius:24px;transition:.3s;"></span>
-      </label>
+      <button id="btnToggleAprovadas" onclick="toggleNotifConfig('aprovadas')" style="width:52px;height:28px;border-radius:20px;border:none;cursor:pointer;transition:.3s;font-size:11px;font-weight:700;">OFF</button>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--b1);">
       <div>
         <div style="font-size:13px;color:#fff;font-weight:500;">Vendas Geradas (PIX)</div>
         <div style="font-size:11px;color:var(--t3);margin-top:2px;">Notificar quando PIX for gerado</div>
       </div>
-      <label style="position:relative;display:inline-block;width:42px;height:24px;">
-        <input type="checkbox" id="notifTogglePendentes" onchange="salvarNotifConfig()" style="opacity:0;width:0;height:0;">
-        <span onclick="document.getElementById('notifTogglePendentes').click()" id="sliderPendentes" style="position:absolute;cursor:pointer;inset:0;background:#2d3748;border-radius:24px;transition:.3s;"></span>
-      </label>
+      <button id="btnTogglePendentes" onclick="toggleNotifConfig('pendentes')" style="width:52px;height:28px;border-radius:20px;border:none;cursor:pointer;transition:.3s;font-size:11px;font-weight:700;">OFF</button>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;">
       <div>
         <div style="font-size:13px;color:#fff;font-weight:500;">Recuperação de Vendas</div>
         <div style="font-size:11px;color:var(--t3);margin-top:2px;">Alertas após 5min, 30min e 2h</div>
       </div>
-      <label style="position:relative;display:inline-block;width:42px;height:24px;">
-        <input type="checkbox" id="notifToggleRecuperacao" onchange="salvarNotifConfig()" style="opacity:0;width:0;height:0;">
-        <span onclick="document.getElementById('notifToggleRecuperacao').click()" id="sliderRecuperacao" style="position:absolute;cursor:pointer;inset:0;background:#2d3748;border-radius:24px;transition:.3s;"></span>
-      </label>
+      <button id="btnToggleRecuperacao" onclick="toggleNotifConfig('recuperacao')" style="width:52px;height:28px;border-radius:20px;border:none;cursor:pointer;transition:.3s;font-size:11px;font-weight:700;">OFF</button>
     </div>
   </div>
   <div class="modal-actions" style="margin-top:8px;">
     <button class="btn-save" onclick="closeModal('modalNotifConfig')">Fechar</button>
   </div>
 </div></div>
-
-<style>
-#notifToggleAprovadas:checked + span, #notifTogglePendentes:checked + span, #notifToggleRecuperacao:checked + span { background: #00ff87; }
-#notifToggleAprovadas:checked + span::before, #notifTogglePendentes:checked + span::before, #notifToggleRecuperacao:checked + span::before { transform: translateX(18px); }
-#sliderAprovadas::before, #sliderPendentes::before, #sliderRecuperacao::before { content:''; position:absolute; height:18px; width:18px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:.3s; }
-</style>
 
 <script>
 if('serviceWorker' in navigator){
