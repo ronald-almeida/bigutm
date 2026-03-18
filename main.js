@@ -976,7 +976,7 @@ function renderRecuperacao(){
   const ignorados   = leads.filter(l=>l.status==='ignorado');
   const valAberto   = pendentes.reduce((a,l)=>a+l.valor,0);
   set('recTotalLeads',     leads.length);
-  set('recValorAberto',    'R$ '+brl(valAberto));
+  set('recValorAberto',    brlS(valAberto));
   set('recTotalRecuperados', recuperados.length);
   set('recTotalIgnorados',  ignorados.length);
 
