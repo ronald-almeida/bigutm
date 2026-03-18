@@ -897,30 +897,20 @@ async function subscribePush(reg){
 }
 
 function initNotifications(){
-  if(!('Notification' in window) || !('serviceWorker' in navigator)) return;
-  if(Notification.permission === 'default'){
-    setTimeout(()=>{
-      const banner = document.createElement('div');
-      banner.id = 'notifBanner';
-      banner.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#0d2137;border:1px solid rgba(0,255,135,.3);border-radius:12px;padding:14px 18px;z-index:9999;display:flex;align-items:center;gap:12px;font-family:var(--font-ui);font-size:12px;color:#fff;box-shadow:0 4px 24px rgba(0,0,0,.4);';
-      banner.innerHTML = '<span style="color:#00ff87;font-size:18px;">🔔</span><span>Ativar notificações de vendas?</span><button onclick="enableNotifications()" style="background:#00ff87;color:#000;border:none;border-radius:6px;padding:5px 12px;font-weight:700;cursor:pointer;font-size:11px;">Ativar</button><button onclick="this.parentNode.remove()" style="background:transparent;border:none;color:#666;cursor:pointer;font-size:16px;">✕</button>';
-      document.body.appendChild(banner);
-    }, 2000);
-  } else if(Notification.permission === 'granted'){
+  // Push subscription gerenciado pela aba de Notificações
+  if('Notification' in window && Notification.permission === 'granted'){
     navigator.serviceWorker.ready.then(subscribePush);
   }
 }
 
 function enableNotifications(){
   Notification.requestPermission().then(async p=>{
-    const banner = document.getElementById('notifBanner');
-    if(banner) banner.remove();
     if(p === 'granted'){
       const reg = await navigator.serviceWorker.ready;
       await subscribePush(reg);
-      showToast('Notificações ativadas!','green');
+      showToast('Notificações push ativadas!','green');
     } else {
-      showToast('Permissão negada','yellow');
+      showToast('Permissão negada pelo sistema','yellow');
     }
   });
 }
@@ -994,6 +984,44 @@ function syncNotifConfigUI(){
   if(ta) ta.checked = S.notifConfig.aprovadas !== false;
   if(tp) tp.checked = S.notifConfig.pendentes !== false;
   if(tr) tr.checked = S.notifConfig.recuperacao !== false;
+}
+
+
+function ativarPushNotif(){
+  if(!('Notification' in window)){ showToast('Seu browser não suporta notificações','yellow'); return; }
+  if(Notification.permission === 'granted'){
+    navigator.serviceWorker.ready.then(async reg => {
+      await subscribePush(reg);
+      showToast('Push já está ativo!','green');
+      atualizarBtnPush();
+    });
+    return;
+  }
+  enableNotifications().then ? enableNotifications() : null;
+  Notification.requestPermission().then(async p=>{
+    if(p==='granted'){
+      const reg = await navigator.serviceWorker.ready;
+      await subscribePush(reg);
+      showToast('Notificações push ativadas!','green');
+    } else {
+      showToast('Permissão negada','yellow');
+    }
+    atualizarBtnPush();
+  });
+}
+
+function atualizarBtnPush(){
+  const btn = document.getElementById('btnAtivarPush');
+  if(!btn) return;
+  if(!('Notification' in window)){
+    btn.style.display = 'none';
+  } else if(Notification.permission === 'granted'){
+    btn.textContent = '🔔 Push Ativo';
+    btn.style.background = 'rgba(0,255,135,.15)';
+    btn.style.borderColor = 'rgba(0,255,135,.4)';
+  } else {
+    btn.textContent = '🔔 Ativar Push';
+  }
 }
 
 function updateNotifBadge(){
