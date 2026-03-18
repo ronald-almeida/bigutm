@@ -1551,12 +1551,54 @@ const AUTH_KEY   = 'bigutm_token';
 const SENHA_HASH = btoa('bigutm2024');
 const AUTH_URL   = 'https://bigcompany.shop/painelv/auth.php';
 
-function getToken(){ try{ return localStorage.getItem(AUTH_KEY)||sessionStorage.getItem(AUTH_KEY)||''; }catch(e){ return ''; } }
-function saveToken(token){ try{ localStorage.setItem(AUTH_KEY,token); sessionStorage.setItem(AUTH_KEY,token); }catch(e){} }
-function clearToken(){ try{ localStorage.removeItem(AUTH_KEY); sessionStorage.removeItem(AUTH_KEY); }catch(e){} }
+// IndexedDB para persistência máxima no iOS PWA
+const DB_NAME = 'bigutm_db', DB_STORE = 'auth';
+let _dbReady = null;
+
+function openDB(){
+  if(_dbReady) return _dbReady;
+  _dbReady = new Promise((res,rej)=>{
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(DB_STORE);
+    req.onsuccess = e => res(e.target.result);
+    req.onerror   = () => rej();
+  });
+  return _dbReady;
+}
+
+async function getToken(){
+  try{
+    const db = await openDB();
+    return await new Promise((res)=>{
+      const tx  = db.transaction(DB_STORE,'readonly');
+      const req = tx.objectStore(DB_STORE).get('token');
+      req.onsuccess = () => res(req.result||'');
+      req.onerror   = () => res('');
+    });
+  }catch(e){
+    return localStorage.getItem(AUTH_KEY)||'';
+  }
+}
+
+async function saveToken(token){
+  try{
+    const db = await openDB();
+    await new Promise((res)=>{
+      const tx  = db.transaction(DB_STORE,'readwrite');
+      tx.objectStore(DB_STORE).put(token,'token');
+      tx.oncomplete = res;
+    });
+  }catch(e){}
+  try{ localStorage.setItem(AUTH_KEY,token); }catch(e){}
+}
+
+function clearToken(){
+  openDB().then(db=>{ const tx=db.transaction(DB_STORE,'readwrite'); tx.objectStore(DB_STORE).delete('token'); });
+  try{ localStorage.removeItem(AUTH_KEY); }catch(e){}
+}
 
 async function checkSession(){
-  const token = getToken();
+  const token = await getToken();
   if(!token) return false;
   try{
     const r = await fetch(AUTH_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'check', token}) });
@@ -1572,10 +1614,10 @@ async function saveSession(){
   try{
     const r = await fetch(AUTH_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'save'}) });
     const d = await r.json();
-    if(d.token) saveToken(d.token);
+    if(d.token) await saveToken(d.token);
   }catch(e){
     // Fallback local
-    saveToken(btoa(Date.now().toString()));
+    await saveToken(btoa(Date.now().toString()));
   }
 }
 
