@@ -1553,19 +1553,34 @@ const AUTH_DAYS  = 60;
 // Senha padrão: bigutm2024 → para trocar, gere: btoa('suasenha')
 const SENHA_HASH = btoa('bigutm2024');
 
+function getCookie(name){
+  const v = document.cookie.match('(^|;)\s*'+name+'\s*=\s*([^;]+)');
+  return v ? v.pop() : null;
+}
+
+function setCookie(name, value, days){
+  const exp = new Date(Date.now() + days*24*60*60*1000).toUTCString();
+  document.cookie = name+'='+value+'; expires='+exp+'; path=/; SameSite=Lax';
+}
+
 function checkSession(){
   try{
-    const raw = localStorage.getItem(AUTH_KEY);
+    // Tenta cookie primeiro, depois localStorage como fallback
+    const cookie = getCookie(AUTH_KEY);
+    const raw    = cookie || localStorage.getItem(AUTH_KEY);
     if(!raw) return false;
-    const { hash, exp } = JSON.parse(raw);
-    if(Date.now() > exp) { localStorage.removeItem(AUTH_KEY); return false; }
+    const { hash, exp } = JSON.parse(decodeURIComponent(raw));
+    if(Date.now() > exp){ setCookie(AUTH_KEY,'',0); localStorage.removeItem(AUTH_KEY); return false; }
     return hash === SENHA_HASH;
   }catch(e){ return false; }
 }
 
 function saveSession(){
-  const exp = Date.now() + (AUTH_DAYS * 24 * 60 * 60 * 1000);
-  localStorage.setItem(AUTH_KEY, JSON.stringify({ hash: SENHA_HASH, exp }));
+  const exp  = Date.now() + (AUTH_DAYS * 24 * 60 * 60 * 1000);
+  const data = encodeURIComponent(JSON.stringify({ hash: SENHA_HASH, exp }));
+  // Salva nos dois lugares para máxima compatibilidade
+  setCookie(AUTH_KEY, data, AUTH_DAYS);
+  try{ localStorage.setItem(AUTH_KEY, JSON.stringify({ hash: SENHA_HASH, exp })); }catch(e){}
 }
 
 function checkLogin(){
