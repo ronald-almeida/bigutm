@@ -868,26 +868,59 @@ let currentPage = 'resultado';
 /* ── Browser Notifications ──────────────────────────────── */
 let _knownTxIds = new Set();
 
+const PUSH_SERVER  = 'https://bigcompany.shop/push-proxy.php';
+const VAPID_PUBLIC = 'BDm_AABF01xcVAphGRFx8eIaZqvRYVgMsQ0ghF6nGuQOwSrMt_uhnR7S-PqpDLrR_aLbCDebfsJI4OxeYLTSFfE';
+
+function urlBase64ToUint8Array(base64String){
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64  = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = window.atob(base64);
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
+async function subscribePush(reg){
+  try{
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC)
+    });
+    await fetch(PUSH_SERVER + '/subscribe', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(sub)
+    });
+    console.log('[Push] Inscrito com sucesso');
+  } catch(e) {
+    console.warn('[Push] Erro ao inscrever:', e);
+  }
+}
+
 function initNotifications(){
-  if(!('Notification' in window)) return;
+  if(!('Notification' in window) || !('serviceWorker' in navigator)) return;
   if(Notification.permission === 'default'){
-    // Mostra banner para pedir permissão (precisa de clique do usuário)
     setTimeout(()=>{
       const banner = document.createElement('div');
       banner.id = 'notifBanner';
       banner.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#0d2137;border:1px solid rgba(0,255,135,.3);border-radius:12px;padding:14px 18px;z-index:9999;display:flex;align-items:center;gap:12px;font-family:var(--font-ui);font-size:12px;color:#fff;box-shadow:0 4px 24px rgba(0,0,0,.4);';
-      banner.innerHTML = `<span style="color:#00ff87;font-size:18px;">🔔</span><span>Ativar notificações de vendas?</span><button onclick="enableNotifications()" style="background:#00ff87;color:#000;border:none;border-radius:6px;padding:5px 12px;font-weight:700;cursor:pointer;font-size:11px;">Ativar</button><button onclick="this.parentNode.remove()" style="background:transparent;border:none;color:#666;cursor:pointer;font-size:16px;">✕</button>`;
+      banner.innerHTML = '<span style="color:#00ff87;font-size:18px;">🔔</span><span>Ativar notificações de vendas?</span><button onclick="enableNotifications()" style="background:#00ff87;color:#000;border:none;border-radius:6px;padding:5px 12px;font-weight:700;cursor:pointer;font-size:11px;">Ativar</button><button onclick="this.parentNode.remove()" style="background:transparent;border:none;color:#666;cursor:pointer;font-size:16px;">✕</button>';
       document.body.appendChild(banner);
     }, 2000);
+  } else if(Notification.permission === 'granted'){
+    navigator.serviceWorker.ready.then(subscribePush);
   }
 }
 
 function enableNotifications(){
-  Notification.requestPermission().then(p=>{
+  Notification.requestPermission().then(async p=>{
     const banner = document.getElementById('notifBanner');
     if(banner) banner.remove();
-    if(p === 'granted') showToast('Notificações ativadas!','green');
-    else showToast('Permissão negada','yellow');
+    if(p === 'granted'){
+      const reg = await navigator.serviceWorker.ready;
+      await subscribePush(reg);
+      showToast('Notificações ativadas!','green');
+    } else {
+      showToast('Permissão negada','yellow');
+    }
   });
 }
 
