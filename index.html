@@ -107,6 +107,10 @@
         <div class="nav-item" data-page="recuperacao" onclick="goPage('recuperacao')">
           <span class="nav-icon"></span> Recuperação
         </div>
+        <div class="nav-item" data-page="notificacoes" onclick="goPage('notificacoes')">
+          <span class="nav-icon"></span> Notificações
+          <span class="nav-badge" id="notifBadge" style="display:none;">0</span>
+        </div>
         <div class="nav-item" onclick="openFixoModal('func');closeSidebar()">
           <span class="nav-icon"></span> Funcionários
         </div>
@@ -670,6 +674,38 @@
           </table>
         </div>
         <div id="recPaginacao" style="display:flex;justify-content:center;gap:8px;margin-top:14px;flex-wrap:wrap;"></div>
+      </div>
+    </section>
+
+
+    <!-- ═══════════════ PÁGINA: NOTIFICAÇÕES ═══════════════ -->
+    <section class="page" id="page-notificacoes">
+
+      <!-- Header -->
+      <div class="chip-mes-card" style="margin-bottom:14px;">
+        <div class="cmc-left">
+          <div class="cmc-label">Notificações</div>
+          <div class="cmc-note" id="notifResumo">Carregando...</div>
+        </div>
+        <div style="display:flex;gap:8px;align-self:center;">
+          <button class="btn-cancel" onclick="marcarTodasLidas()" style="font-size:11px;padding:6px 12px;">✓ Marcar todas lidas</button>
+          <button class="btn-cancel" onclick="limparNotificacoes()" style="font-size:11px;padding:6px 12px;color:var(--red);border-color:var(--red);">Limpar</button>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+        <button class="fixo-btn notif-filtro active-notif" data-filtro="todas" onclick="setNotifFiltro('todas')">Todas</button>
+        <button class="fixo-btn notif-filtro" data-filtro="nao_lidas" onclick="setNotifFiltro('nao_lidas')">Não lidas</button>
+        <button class="fixo-btn notif-filtro" data-filtro="financeiro" onclick="setNotifFiltro('financeiro')">Financeiro</button>
+        <button class="fixo-btn notif-filtro" data-filtro="recuperacao" onclick="setNotifFiltro('recuperacao')">Recuperação</button>
+        <button class="fixo-btn notif-filtro" data-filtro="sistema" onclick="setNotifFiltro('sistema')">Sistema</button>
+      </div>
+
+      <!-- Lista -->
+      <div id="notifLista" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <div id="notifLoadMore" style="text-align:center;margin-top:14px;display:none;">
+        <button class="btn-cancel" onclick="loadMoreNotif()" style="font-size:11px;">Carregar mais</button>
       </div>
     </section>
 
