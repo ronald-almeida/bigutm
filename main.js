@@ -990,6 +990,28 @@ function syncNotifConfigUI(){
 }
 
 
+
+async function diagPush(){
+  let info = [];
+  info.push('Notification: ' + (('Notification' in window) ? 'OK' : 'NAO'));
+  info.push('Permission: ' + (Notification.permission));
+  info.push('ServiceWorker: ' + (('serviceWorker' in navigator) ? 'OK' : 'NAO'));
+  
+  try {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    info.push('SW registrados: ' + regs.length);
+    if(regs.length > 0){
+      const reg = regs[0];
+      const sub = await reg.pushManager.getSubscription();
+      info.push('Push sub: ' + (sub ? 'ATIVA' : 'INATIVA'));
+    }
+  } catch(e) {
+    info.push('SW erro: ' + e.message);
+  }
+  
+  alert(info.join('\n'));
+}
+
 function ativarPushNotif(){
   if(!('Notification' in window)){ showToast('Seu browser não suporta notificações','yellow'); return; }
   if(Notification.permission === 'granted'){
