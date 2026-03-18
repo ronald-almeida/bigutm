@@ -34,6 +34,8 @@ const S = {
   impostos:       [],
   tfa:            [],
   disparos:       [],
+  recLeads:       {},
+  recCopy:        'Olá {nome}, identificamos que você iniciou um pagamento de R$ {valor} mas não foi concluído. Clique aqui para finalizar sua compra!',
   chipsHistory:   {},
   transactions:   [],
   withdrawals:    [],
@@ -273,8 +275,10 @@ const AnubisPay = {
       externalRef:    tx.externalRef || '',
       createdAt:      tx.createdAt || tx.created_at || '',
       customer: {
-        name:  tx.customer?.name  || '',
-        email: tx.customer?.email || ''
+        name:     tx.customer?.name     || '',
+        email:    tx.customer?.email    || '',
+        phone:    tx.customer?.phone    || tx.customer?.phoneNumber || '',
+        document: tx.customer?.document || tx.customer?.cpf || tx.customer?.taxId || ''
       },
       _gateway: 'anubis'
     };
@@ -916,6 +920,178 @@ function checkNewTransactions(newTxs){
 
 
 
+
+
+/* ── Recuperação de Vendas ──────────────────────────────── */
+let _recPage = 1;
+const REC_PER_PAGE = 20;
+
+function getLeadsFromTx(){
+  const minMinutes = parseInt(document.getElementById('recMinTime')?.value || '30');
+  const now = Date.now();
+  const cutoff = minMinutes * 60 * 1000;
+  const seen = new Set();
+  return S.transactions
+    .filter(tx => {
+      if(tx.status !== 'WAITING_PAYMENT') return false;
+      const age = now - new Date(tx.createdAt).getTime();
+      if(age < cutoff) return false;
+      if(seen.has(tx.id)) return false;
+      seen.add(tx.id);
+      return true;
+    })
+    .map(tx => {
+      const lead = S.recLeads[tx.id] || {};
+      return {
+        id:        tx.id,
+        nome:      tx.customer?.name     || 'Desconhecido',
+        email:     tx.customer?.email    || '',
+        phone:     tx.customer?.phone    || '',
+        document:  tx.customer?.document || '',
+        valor:     (tx.amount || 0) / 100,
+        createdAt: tx.createdAt,
+        status:    lead.status || 'pendente',
+        acionado:  lead.acionado || false,
+        gateway:   tx._gateway
+      };
+    });
+}
+
+function renderRecuperacao(){
+  const leads = getLeadsFromTx();
+  const filtroStatus = document.getElementById('recFiltroStatus')?.value || 'todos';
+  const filtroValor  = parseFloat(document.getElementById('recFiltroValor')?.value || '0') || 0;
+
+  // Restore copy
+  const copyEl = document.getElementById('recCopy');
+  if(copyEl && S.recCopy) copyEl.value = S.recCopy;
+
+  let filtered = leads;
+  if(filtroStatus !== 'todos') filtered = filtered.filter(l => l.status === filtroStatus);
+  if(filtroValor > 0)          filtered = filtered.filter(l => l.valor >= filtroValor);
+
+  // Stats
+  const pendentes   = leads.filter(l=>l.status==='pendente');
+  const recuperados = leads.filter(l=>l.status==='recuperado');
+  const ignorados   = leads.filter(l=>l.status==='ignorado');
+  const valAberto   = pendentes.reduce((a,l)=>a+l.valor,0);
+  set('recTotalLeads',     leads.length);
+  set('recValorAberto',    'R$ '+brl(valAberto));
+  set('recTotalRecuperados', recuperados.length);
+  set('recTotalIgnorados',  ignorados.length);
+
+  // Paginação
+  const total = filtered.length;
+  const pages = Math.max(1, Math.ceil(total / REC_PER_PAGE));
+  if(_recPage > pages) _recPage = 1;
+  const slice = filtered.slice((_recPage-1)*REC_PER_PAGE, _recPage*REC_PER_PAGE);
+
+  const tbody = document.getElementById('recBody');
+  if(!tbody) return;
+
+  if(!slice.length){
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">Nenhum lead encontrado com os filtros selecionados.</div></td></tr>`;
+  } else {
+    tbody.innerHTML = slice.map(lead => {
+      const statusColor = lead.status==='recuperado' ? '#00ff87' : lead.status==='ignorado' ? '#4a5568' : '#f6c90e';
+      const statusLabel = lead.status==='recuperado' ? '✓ Recuperado' : lead.status==='ignorado' ? '✗ Ignorado' : '⏳ Pendente';
+      const phoneClean = (lead.phone||'').replace(/\D/g,'');
+      const hasPhone = phoneClean.length >= 10;
+      const acionadoBadge = lead.acionado ? '<span style="font-size:9px;color:#00ff87;margin-left:4px;">✓ acionado</span>' : '';
+      return `<tr>
+        <td>
+          <div style="font-weight:500;color:#fff;">${lead.nome}</div>
+          <div style="font-size:10px;color:var(--t3);">${lead.document ? maskDoc(lead.document) : '—'}</div>
+        </td>
+        <td>
+          <div style="font-size:11px;">${lead.phone || '—'}${acionadoBadge}</div>
+          <div style="font-size:10px;color:var(--t3);">${lead.email || '—'}</div>
+        </td>
+        <td style="color:#f6c90e;font-weight:600;">R$ ${brl(lead.valor)}</td>
+        <td style="font-size:11px;">${fmtDt(lead.createdAt)}</td>
+        <td><span style="color:${statusColor};font-size:11px;font-weight:600;">${statusLabel}</span></td>
+        <td>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;">
+            ${hasPhone ? `<button class="btn-save" style="font-size:9px;padding:4px 8px;background:rgba(0,200,100,.15);border-color:rgba(0,200,100,.3);" onclick="enviarWhatsApp('${lead.id}')">WhatsApp</button>` : ''}
+            <button class="fixo-btn" style="font-size:9px;" onclick="setLeadStatus('${lead.id}','recuperado')">Recuperado</button>
+            <button class="fixo-btn" style="font-size:9px;color:var(--t3);" onclick="setLeadStatus('${lead.id}','ignorado')">Ignorar</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Render paginação
+  const pag = document.getElementById('recPaginacao');
+  if(pag){
+    pag.innerHTML = pages <= 1 ? '' : Array.from({length:pages},(_,i)=>
+      `<button class="fixo-btn" style="font-size:10px;${i+1===_recPage?'color:#00ff87;border-color:#00ff87;':''}" onclick="_recPage=${i+1};renderRecuperacao()">${i+1}</button>`
+    ).join('');
+  }
+}
+
+function maskDoc(doc){
+  const d = doc.replace(/\D/g,'');
+  if(d.length===11) return d.slice(0,3)+'.***.***-'+d.slice(9);
+  return doc.slice(0,4)+'****'+doc.slice(-2);
+}
+
+function buildCopy(lead){
+  const copy = document.getElementById('recCopy')?.value || S.recCopy || '';
+  return copy
+    .replace(/{nome}/g,     lead.nome   || '')
+    .replace(/{cpf}/g,      lead.document || '')
+    .replace(/{telefone}/g, lead.phone   || '')
+    .replace(/{valor}/g,    brl(lead.valor))
+    .replace(/{data}/g,     fmtDt(lead.createdAt));
+}
+
+function enviarWhatsApp(id){
+  const leads = getLeadsFromTx();
+  const lead = leads.find(l=>l.id===id);
+  if(!lead) return;
+  const phoneClean = lead.phone.replace(/\D/g,'');
+  const phone = phoneClean.startsWith('55') ? phoneClean : '55'+phoneClean;
+  const msg = buildCopy(lead);
+  const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+  // Marca como acionado
+  if(!S.recLeads[id]) S.recLeads[id] = {};
+  S.recLeads[id].acionado = true;
+  persist();
+  window.open(url, '_blank');
+  renderRecuperacao();
+}
+
+function setLeadStatus(id, status){
+  if(!S.recLeads[id]) S.recLeads[id] = {};
+  S.recLeads[id].status = status;
+  persist();
+  renderRecuperacao();
+  showToast(status==='recuperado'?'✓ Marcado como recuperado':'Lead ignorado', status==='recuperado'?'green':'yellow');
+}
+
+function salvarCopyRec(){
+  S.recCopy = document.getElementById('recCopy')?.value || '';
+  persist();
+  showToast('Copy salva','green');
+}
+
+function exportarLeadsCSV(){
+  const leads = getLeadsFromTx();
+  const header = 'Nome,CPF,Telefone,Email,Valor,Data,Status,Acionado';
+  const rows = leads.map(l =>
+    [l.nome, l.document, l.phone, l.email, brl(l.valor), fmtDt(l.createdAt), l.status, l.acionado?'Sim':'Não']
+    .map(v => `"${(v||'').replace(/"/g,'""')}"`)
+    .join(',')
+  );
+  const csv = [header, ...rows].join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'leads_recuperacao.csv';
+  a.click(); URL.revokeObjectURL(url);
+  showToast('CSV exportado','green');
+}
 
 /* ── Disparos ───────────────────────────────────────────── */
 const MESES_LABEL = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
