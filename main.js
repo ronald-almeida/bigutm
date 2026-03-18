@@ -969,21 +969,23 @@ function criarNotificacao(title, message, tipo, actionUrl){
 }
 
 
-function salvarNotifConfig(){
-  S.notifConfig.aprovadas   = document.getElementById('notifToggleAprovadas')?.checked ?? true;
-  S.notifConfig.pendentes   = document.getElementById('notifTogglePendentes')?.checked ?? true;
-  S.notifConfig.recuperacao = document.getElementById('notifToggleRecuperacao')?.checked ?? true;
+function toggleNotifConfig(tipo){
+  S.notifConfig[tipo] = !S.notifConfig[tipo];
   persist();
-  showToast('Configurações salvas','green');
+  syncNotifConfigUI();
+  showToast(S.notifConfig[tipo] ? tipo+' ativado' : tipo+' desativado', S.notifConfig[tipo]?'green':'yellow');
 }
 
 function syncNotifConfigUI(){
-  const ta = document.getElementById('notifToggleAprovadas');
-  const tp = document.getElementById('notifTogglePendentes');
-  const tr = document.getElementById('notifToggleRecuperacao');
-  if(ta) ta.checked = S.notifConfig.aprovadas !== false;
-  if(tp) tp.checked = S.notifConfig.pendentes !== false;
-  if(tr) tr.checked = S.notifConfig.recuperacao !== false;
+  const map = { aprovadas:'btnToggleAprovadas', pendentes:'btnTogglePendentes', recuperacao:'btnToggleRecuperacao' };
+  Object.entries(map).forEach(([key, id])=>{
+    const btn = document.getElementById(id);
+    if(!btn) return;
+    const ativo = S.notifConfig[key] !== false;
+    btn.textContent = ativo ? 'ON' : 'OFF';
+    btn.style.background = ativo ? '#00ff87' : '#2d3748';
+    btn.style.color = ativo ? '#000' : '#fff';
+  });
 }
 
 
