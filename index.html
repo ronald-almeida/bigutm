@@ -606,11 +606,12 @@
           <div>
             <div style="font-size:9px;font-weight:600;color:rgba(255,255,255,.35);margin-bottom:6px;text-transform:uppercase;letter-spacing:1.5px;">Abandono mínimo</div>
             <select class="form-input" id="recMinTime" style="width:100%;height:36px;font-size:12px;" onchange="renderRecuperacao()">
-              <option value="10">10 minutos</option>
-              <option value="30" selected>30 minutos</option>
-              <option value="60">1 hora</option>
-              <option value="120">2 horas</option>
-              <option value="1440">24 horas</option>
+              <option value="60">Última 1 hora</option>
+              <option value="120">Últimas 2 horas</option>
+              <option value="360">Últimas 6 horas</option>
+              <option value="720" selected>Últimas 12 horas</option>
+              <option value="1440">Últimas 24 horas</option>
+              <option value="month">Mês completo</option>
             </select>
           </div>
           <div>
