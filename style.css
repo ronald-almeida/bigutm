@@ -1294,3 +1294,5 @@ tr:hover td { background: var(--glass); }
   font-size: 10px;
   color: var(--t2);
 }
+
+.notif-filtro.active-notif { color: #00ff87 !important; border-color: rgba(0,255,135,.4) !important; }
