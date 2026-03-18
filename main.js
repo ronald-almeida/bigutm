@@ -869,7 +869,7 @@ let currentPage = 'resultado';
 /* ── Browser Notifications ──────────────────────────────── */
 let _knownTxIds = new Set();
 
-const PUSH_SERVER  = 'https://bigcompany.shop/push-proxy.php';
+const PUSH_SERVER  = 'https://bigutm-push-production.up.railway.app';
 const VAPID_PUBLIC = 'BDm_AABF01xcVAphGRFx8eIaZqvRYVgMsQ0ghF6nGuQOwSrMt_uhnR7S-PqpDLrR_aLbCDebfsJI4OxeYLTSFfE';
 
 function urlBase64ToUint8Array(base64String){
