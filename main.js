@@ -1655,7 +1655,7 @@ function closeSidebar(){ document.querySelector('.sidebar')?.classList.remove('o
 function setPeriod(p){ const today=new Date(); let from,to=today; if(p==='today') from=new Date(today); else if(p==='week'){from=new Date(today);from.setDate(today.getDate()-7);} else if(p==='month') from=new Date(today.getFullYear(),today.getMonth(),1); else if(p==='last'){from=new Date(today.getFullYear(),today.getMonth()-1,1);to=new Date(today.getFullYear(),today.getMonth(),0);} document.getElementById('dateFrom').value=fmt(from); document.getElementById('dateTo').value=fmt(to); document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active')); document.querySelector(`[data-period="${p}"]`)?.classList.add('active'); }
 
 /* ── Modais / UI ──────────────────────────────────────────── */
-function openModal(id){document.getElementById(id)?.classList.add('open');}
+function openModal(id){ if(id==='modalNotifConfig') syncNotifConfigUI(); document.getElementById(id)?.classList.add('open'); }
 function closeModal(id){document.getElementById(id)?.classList.remove('open');}
 document.addEventListener('click',e=>{ if(e.target.classList.contains('modal-bg')) e.target.classList.remove('open'); });
 function setLoading(on){document.getElementById('loadingBar')?.classList.toggle('active',on);}
