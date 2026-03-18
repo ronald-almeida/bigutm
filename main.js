@@ -1547,40 +1547,36 @@ function deleteEscr(id){
 }
 
 /* ── Auth ───────────────────────────────────────────────── */
-const AUTH_KEY   = 'bigutm_auth';
-const AUTH_DAYS  = 60;
-// Senha em hash simples (SHA-like via btoa) — troque o valor abaixo
-// Senha padrão: bigutm2024 → para trocar, gere: btoa('suasenha')
+const AUTH_KEY   = 'bigutm_token';
 const SENHA_HASH = btoa('bigutm2024');
+const AUTH_URL   = 'https://bigcompany.shop/painelv/auth.php';
 
-function getCookie(name){
-  const v = document.cookie.match('(^|;)\s*'+name+'\s*=\s*([^;]+)');
-  return v ? v.pop() : null;
-}
+function getToken(){ try{ return localStorage.getItem(AUTH_KEY)||sessionStorage.getItem(AUTH_KEY)||''; }catch(e){ return ''; } }
+function saveToken(token){ try{ localStorage.setItem(AUTH_KEY,token); sessionStorage.setItem(AUTH_KEY,token); }catch(e){} }
+function clearToken(){ try{ localStorage.removeItem(AUTH_KEY); sessionStorage.removeItem(AUTH_KEY); }catch(e){} }
 
-function setCookie(name, value, days){
-  const exp = new Date(Date.now() + days*24*60*60*1000).toUTCString();
-  document.cookie = name+'='+value+'; expires='+exp+'; path=/; SameSite=Lax';
-}
-
-function checkSession(){
+async function checkSession(){
+  const token = getToken();
+  if(!token) return false;
   try{
-    // Tenta cookie primeiro, depois localStorage como fallback
-    const cookie = getCookie(AUTH_KEY);
-    const raw    = cookie || localStorage.getItem(AUTH_KEY);
-    if(!raw) return false;
-    const { hash, exp } = JSON.parse(decodeURIComponent(raw));
-    if(Date.now() > exp){ setCookie(AUTH_KEY,'',0); localStorage.removeItem(AUTH_KEY); return false; }
-    return hash === SENHA_HASH;
-  }catch(e){ return false; }
+    const r = await fetch(AUTH_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'check', token}) });
+    const d = await r.json();
+    return d.ok === true;
+  }catch(e){ 
+    // Se servidor offline, valida localmente
+    return token.length > 0;
+  }
 }
 
-function saveSession(){
-  const exp  = Date.now() + (AUTH_DAYS * 24 * 60 * 60 * 1000);
-  const data = encodeURIComponent(JSON.stringify({ hash: SENHA_HASH, exp }));
-  // Salva nos dois lugares para máxima compatibilidade
-  setCookie(AUTH_KEY, data, AUTH_DAYS);
-  try{ localStorage.setItem(AUTH_KEY, JSON.stringify({ hash: SENHA_HASH, exp })); }catch(e){}
+async function saveSession(){
+  try{
+    const r = await fetch(AUTH_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'save'}) });
+    const d = await r.json();
+    if(d.token) saveToken(d.token);
+  }catch(e){
+    // Fallback local
+    saveToken(btoa(Date.now().toString()));
+  }
 }
 
 function checkLogin(){
@@ -1589,8 +1585,7 @@ function checkLogin(){
   if(!input) return;
   const val = input.value.trim();
   if(btoa(val) === SENHA_HASH){
-    saveSession();
-    showApp();
+    saveSession().then(()=>showApp());
   } else {
     err.style.display = 'block';
     input.value = '';
@@ -1604,17 +1599,19 @@ function showApp(){
   const app   = document.getElementById('appLayout');
   if(login) login.style.display = 'none';
   if(app)   app.style.display   = '';
-  if(window._pendingInit){ window._pendingInit=false; init(); }
+  init();
 }
 
 function initAuth(){
-  if(checkSession()){
-    showApp();
-  } else {
-    const login = document.getElementById('loginScreen');
-    if(login) login.style.display = 'flex';
-    setTimeout(()=>{ document.getElementById('loginInput')?.focus(); }, 100);
-  }
+  checkSession().then(valid => {
+    if(valid){
+      showApp();
+    } else {
+      const login = document.getElementById('loginScreen');
+      if(login) login.style.display = 'flex';
+      setTimeout(()=>{ document.getElementById('loginInput')?.focus(); }, 100);
+    }
+  });
 }
 
 function init(){
