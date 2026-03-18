@@ -977,6 +977,7 @@ function toggleNotifConfig(tipo){
 }
 
 function syncNotifConfigUI(){
+  if(!S.notifConfig) S.notifConfig = { aprovadas: true, pendentes: true, recuperacao: true };
   const map = { aprovadas:'btnToggleAprovadas', pendentes:'btnTogglePendentes', recuperacao:'btnToggleRecuperacao' };
   Object.entries(map).forEach(([key, id])=>{
     const btn = document.getElementById(id);
