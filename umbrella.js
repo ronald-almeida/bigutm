@@ -34,7 +34,7 @@ function umbrellaNormTx(tx){
       name:     tx.customer?.name     || '',
       email:    tx.customer?.email    || '',
       phone:    tx.customer?.phone    || tx.customer?.phoneNumber || '',
-      document: tx.customer?.document || tx.customer?.cpf || tx.customer?.taxId || ''
+      document: tx.customer?.document?.number || tx.customer?.document || tx.customer?.cpf || tx.customer?.taxId || ''
     },
     _gateway: 'umbrella'
   };
