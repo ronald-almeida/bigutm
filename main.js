@@ -498,6 +498,7 @@ async function syncData(){
     allWd.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
     S.transactions=allTx; S.withdrawals=allWd; persist();
     checkNewTransactions(allTx);
+    processarNotifTx(allTx);
     calc(allTx,allWd,from,to);
     showToast(`✓ ${allTx.length} transações · ${allWd.length} saques`,'green');
   }catch(err){ showToast('✗ '+err.message,'red'); console.error(err); }
@@ -948,6 +949,150 @@ function checkNewTransactions(newTxs){
 
 
 
+
+
+/* ── Notificações ───────────────────────────────────────── */
+const NOTIF_PAGE_SIZE = 20;
+let _notifPage = 1;
+let _notifFiltro = 'todas';
+
+const NOTIF_TIPOS = {
+  financeiro:  { label: 'Financeiro',  color: '#00ff87' },
+  recuperacao: { label: 'Recuperação', color: '#f6c90e' },
+  sistema:     { label: 'Sistema',     color: '#64748b' },
+  comercial:   { label: 'Comercial',   color: '#a78bfa' }
+};
+
+function criarNotificacao(title, message, tipo, actionUrl){
+  tipo = tipo || 'sistema'; actionUrl = actionUrl || '';
+  const notif = {
+    id:         Date.now().toString(36) + Math.random().toString(36).slice(2),
+    title, message, tipo, read: false,
+    created_at: new Date().toISOString(),
+    action_url: actionUrl
+  };
+  S.notificacoes.unshift(notif);
+  if(S.notificacoes.length > 200) S.notificacoes = S.notificacoes.slice(0,200);
+  persist();
+  updateNotifBadge();
+  return notif;
+}
+
+function updateNotifBadge(){
+  const naoLidas = (S.notificacoes||[]).filter(n=>!n.read).length;
+  const badge = document.getElementById('notifBadge');
+  if(!badge) return;
+  badge.style.display = naoLidas > 0 ? '' : 'none';
+  badge.textContent = naoLidas > 99 ? '99+' : naoLidas;
+}
+
+function setNotifFiltro(filtro){
+  _notifFiltro = filtro; _notifPage = 1;
+  document.querySelectorAll('.notif-filtro').forEach(b=>b.classList.toggle('active-notif', b.dataset.filtro===filtro));
+  renderNotificacoes();
+}
+
+function getNotifFiltradas(){
+  let list = S.notificacoes||[];
+  if(_notifFiltro==='nao_lidas') list=list.filter(n=>!n.read);
+  else if(_notifFiltro!=='todas') list=list.filter(n=>n.tipo===_notifFiltro);
+  return list;
+}
+
+function renderNotificacoes(){
+  updateNotifBadge();
+  const list = getNotifFiltradas();
+  const naoLidas = (S.notificacoes||[]).filter(n=>!n.read).length;
+  set('notifResumo', (S.notificacoes||[]).length+' notificações · '+naoLidas+' não lidas');
+  const slice = list.slice(0, _notifPage * NOTIF_PAGE_SIZE);
+  const container = document.getElementById('notifLista');
+  if(!container) return;
+  if(!slice.length){ container.innerHTML='<div class="empty-state">Nenhuma notificação encontrada.</div>'; document.getElementById('notifLoadMore').style.display='none'; return; }
+  container.innerHTML = slice.map(n=>{
+    const tipo = NOTIF_TIPOS[n.tipo]||NOTIF_TIPOS.sistema;
+    const dt   = fmtDt(n.created_at);
+    const hora = new Date(n.created_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',timeZone:'America/Sao_Paulo'});
+    const op   = n.read ? '0.5' : '1';
+    return '<div onclick="lerNotificacao(''+n.id+'')" style="background:var(--glass2);border:1px solid '+(n.read?'var(--b1)':tipo.color+'44')+';border-radius:12px;padding:14px 16px;cursor:pointer;opacity:'+op+';transition:.15s;position:relative;">'
+      +(!n.read?'<div style="position:absolute;top:14px;right:36px;width:7px;height:7px;border-radius:50%;background:'+tipo.color+';"></div>':'')
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'
+      +'<span style="font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:'+tipo.color+';background:'+tipo.color+'22;padding:2px 8px;border-radius:20px;">'+tipo.label+'</span>'
+      +'<span style="font-size:10px;color:var(--t3);">'+dt+' · '+hora+'</span>'
+      +'<button onclick="event.stopPropagation();deletarNotificacao(''+n.id+'')" style="margin-left:auto;background:transparent;border:none;color:var(--t3);cursor:pointer;font-size:13px;padding:0 4px;">✕</button>'
+      +'</div>'
+      +'<div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:3px;">'+n.title+'</div>'
+      +'<div style="font-size:12px;color:rgba(255,255,255,.55);">'+n.message+'</div>'
+      +'</div>';
+  }).join('');
+  const lm = document.getElementById('notifLoadMore');
+  if(lm) lm.style.display = slice.length < list.length ? '' : 'none';
+}
+
+function loadMoreNotif(){ _notifPage++; renderNotificacoes(); }
+
+function lerNotificacao(id){
+  const n = (S.notificacoes||[]).find(n=>n.id===id);
+  if(!n) return;
+  n.read=true; persist(); updateNotifBadge(); renderNotificacoes();
+  if(n.action_url) goPage(n.action_url);
+}
+
+function marcarTodasLidas(){
+  (S.notificacoes||[]).forEach(n=>n.read=true);
+  persist(); updateNotifBadge(); renderNotificacoes();
+  showToast('Todas marcadas como lidas','green');
+}
+
+function deletarNotificacao(id){
+  S.notificacoes=(S.notificacoes||[]).filter(n=>n.id!==id);
+  persist(); updateNotifBadge(); renderNotificacoes();
+}
+
+function limparNotificacoes(){
+  S.notificacoes=[]; persist(); updateNotifBadge(); renderNotificacoes();
+  showToast('Notificações limpas','yellow');
+}
+
+let _notifTxIds = new Set();
+let _recoveryTimers = {};
+
+function initNotifGatilhos(){
+  (S.transactions||[]).forEach(tx=>_notifTxIds.add(tx.id));
+}
+
+function processarNotifTx(newTxs){
+  (newTxs||[]).forEach(tx=>{
+    if(_notifTxIds.has(tx.id)) return;
+    _notifTxIds.add(tx.id);
+    const valor = 'R$ '+brl((tx.amount||0)/100);
+    const nome  = tx.customer&&tx.customer.name ? tx.customer.name : 'Cliente';
+    if(tx.status==='PAID'||tx.status==='AUTHORIZED'){
+      criarNotificacao('Venda Aprovada ✓', nome+' — '+valor, 'financeiro');
+    } else if(tx.status==='WAITING_PAYMENT'){
+      criarNotificacao('PIX Gerado', nome+' — '+valor+' aguardando pagamento', 'financeiro');
+      agendarRecuperacao(tx, 5*60*1000,   1, valor, nome);
+      agendarRecuperacao(tx, 30*60*1000,  2, valor, nome);
+      agendarRecuperacao(tx, 120*60*1000, 3, valor, nome);
+    }
+  });
+}
+
+function agendarRecuperacao(tx, delay, etapa, valor, nome){
+  const key = tx.id+'_'+etapa;
+  if(_recoveryTimers[key]) return;
+  _recoveryTimers[key] = setTimeout(()=>{
+    const current = (S.transactions||[]).find(t=>t.id===tx.id);
+    if(current && current.status==='WAITING_PAYMENT'){
+      const copies = ['',
+        nome+' gerou um PIX de '+valor+' há 5 min e não pagou ainda.',
+        'Atenção: '+nome+' ainda não concluiu o pagamento de '+valor+'.',
+        'Última chance: '+nome+' tem um PIX de '+valor+' em aberto há 2 horas.'
+      ];
+      criarNotificacao('Recuperação — Etapa '+etapa, copies[etapa], 'recuperacao', 'recuperacao');
+    }
+    delete _recoveryTimers[key];
+  }, delay);
+}
 
 /* ── Recuperação de Vendas ──────────────────────────────── */
 let _recPage = 1;
@@ -1614,6 +1759,7 @@ function init(){
     updateApiStatus();
     goPage('resultado');
     renderChart(); renderTable(); renderWithdrawals(); updateFixosDisplay(); renderEscritorio(); render2FA(); renderAquisicoes(); renderImpostos(); renderDisparos();
+    initNotifGatilhos(); updateNotifBadge();
     renderMeta(calcBrutoAtual()); renderHistoricoMetas(); renderChipHistorico();
     if(S.transactions.length) calc(S.transactions,S.withdrawals,'','');
     checkMetaPrompt(); checkChipPrompt();
