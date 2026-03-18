@@ -925,9 +925,12 @@ function checkNewTransactions(newTxs){
 /* ── Recuperação de Vendas ──────────────────────────────── */
 let _recPage = 1;
 const REC_PER_PAGE = 20;
+let _recMinTime = 30;
+let _recStatus = 'todos';
+let _recValor = 0;
 
 function getLeadsFromTx(){
-  const minMinutes = parseInt(document.getElementById('recMinTime')?.value || '30');
+  const minMinutes = _recMinTime;
   const now = Date.now();
   const cutoff = minMinutes * 60 * 1000;
   const seen = new Set();
@@ -959,8 +962,15 @@ function getLeadsFromTx(){
 
 function renderRecuperacao(){
   const leads = getLeadsFromTx();
-  const filtroStatus = document.getElementById('recFiltroStatus')?.value || 'todos';
-  const filtroValor  = parseFloat(document.getElementById('recFiltroValor')?.value || '0') || 0;
+  // Lê filtros dos elementos se existirem, senão usa estado
+  const selTime = document.getElementById('recMinTime');
+  const selStatus = document.getElementById('recFiltroStatus');
+  const inpValor = document.getElementById('recFiltroValor');
+  if(selTime)   _recMinTime  = parseInt(selTime.value)   || 30;
+  if(selStatus) _recStatus   = selStatus.value           || 'todos';
+  if(inpValor)  _recValor    = parseFloat(inpValor.value)||0;
+  const filtroStatus = _recStatus;
+  const filtroValor  = _recValor;
 
   // Restore copy
   const copyEl = document.getElementById('recCopy');
