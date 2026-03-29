@@ -7,7 +7,7 @@ const UMBRELLA_BASE = 'https://api-gateway.umbrellapag.com/api';
 const UMBRELLA_PROXY = (()=>{
   const host = window.location.hostname;
   const base = (host === 'ronald-almeida.github.io')
-    ? 'https://bigcompany.shop/painelv'
+    ? 'https://bigcofy.shop/bigutm'
     : window.location.href.replace(/\/[^\/]*$/, '');
   return base + '/proxy_umbrella.php';
 })();
