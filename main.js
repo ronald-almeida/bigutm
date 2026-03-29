@@ -52,7 +52,7 @@ const STORAGE_KEY = 'dp6';
 const SAVE_URL = (()=>{
   const host = window.location.hostname;
   const base = (host === 'ronald-almeida.github.io')
-    ? 'https://bigcompany.shop/painelv'
+    ? 'https://bigcofy.shop/bigutm'
     : window.location.href.replace(/\/[^\/]*$/, '');
   return base + '/save.php';
 })();
@@ -66,10 +66,94 @@ function persist(){
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ data: b64 })
-    }).catch(e => console.warn('[DisparoPay] Erro ao salvar no servidor:', e));
+    }).catch(e => console.warn('[BIG UTM] Erro ao salvar no servidor:', e));
+
+    // Backup automatico GitHub (throttle: max 1x por minuto)
+    const now = Date.now();
+    if(!window._lastGhBackup || now - window._lastGhBackup > 60000){
+      window._lastGhBackup = now;
+      githubBackupAuto(b64);
+    }
   }catch(e){
-    console.error('[DisparoPay] Erro ao salvar:', e);
+    console.error('[BIG UTM] Erro ao salvar:', e);
   }
+}
+
+/* ── GitHub Backup ─────────────────────────────────────────── */
+const GITHUB_PROXY = SAVE_URL.replace('save.php','github_backup.php');
+
+async function githubBackupAuto(b64Data){
+  try{
+    await fetch(GITHUB_PROXY,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({data:b64Data,mode:'auto'})
+    });
+  }catch(e){ /* silencioso */ }
+}
+
+async function githubBackupManual(){
+  const btn=document.getElementById('btnGhBackup');
+  if(btn){btn.textContent='⟳ Salvando...';btn.disabled=true;}
+  try{
+    const json=JSON.stringify(S);
+    const b64=btoa(unescape(encodeURIComponent(json)));
+    const res=await fetch(GITHUB_PROXY,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({data:b64,mode:'manual'})
+    });
+    const d=await res.json();
+    if(d.ok){ showToast('\u2713 Backup salvo no GitHub!','green'); }
+    else     { showToast('\u26a0 Backup falhou: '+(d.error||'erro'),'red'); }
+  }catch(e){
+    showToast('\u26a0 Erro: '+e.message,'red');
+  }finally{
+    if(btn){btn.textContent='\u2601 GitHub';btn.disabled=false;}
+  }
+}
+
+
+async function githubSyncCode(){
+  const btn=document.getElementById('btnGhSync');
+  if(btn){btn.textContent='⟳ Sync...';btn.disabled=true;}
+  try{
+    const SYNC_URL=SAVE_URL.replace('save.php','sync_github.php');
+    const res=await fetch(SYNC_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({mode:'all'})
+    });
+    const d=await res.json();
+    if(d.ok){
+      const s=d.summary;
+      showToast(`✓ GitHub sync: ${s.updated} atualizados, ${s.created} criados, ${s.unchanged} sem mudança`,'green');
+    } else {
+      showToast('⚠ Sync falhou: '+(d.error||'erro'),'red');
+    }
+  }catch(e){
+    showToast('⚠ Erro sync: '+e.message,'red');
+  }finally{
+    if(btn){btn.textContent='⇅ Sync';btn.disabled=false;}
+  }
+}
+
+function openGithubConfig(){
+  const token=prompt(
+    '\ud83d\udd11 GitHub Personal Access Token\n\nCole seu token (ghp_...) para ativar o backup.\nO token fica salvo com seguranca no servidor.',''
+  );
+  if(token===null) return;
+  if(!token.startsWith('ghp_')&&!token.startsWith('github_pat_')){
+    showToast('Token invalido. Deve comecar com ghp_','red'); return;
+  }
+  fetch(GITHUB_PROXY,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'save_token',token})
+  }).then(r=>r.json()).then(d=>{
+    if(d.ok){ showToast('\u2713 Token GitHub salvo!','green'); }
+    else     { showToast('Erro ao salvar token: '+(d.error||''),'red'); }
+  }).catch(()=>showToast('Erro de conexao','red'));
 }
 
 async function hydrateFromServer(){
@@ -1767,7 +1851,7 @@ function deleteEscr(id){
 
 /* ── Auth ───────────────────────────────────────────────── */
 const SENHA_HASH = btoa('bigutm2024');
-const AUTH_URL   = 'https://bigcompany.shop/painelv/login.php';
+const AUTH_URL   = 'https://bigcofy.shop/bigutm/login.php';
 
 // Auth via PHP session — sem storage local necessário
 
