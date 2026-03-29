@@ -51,6 +51,8 @@
       <div class="gw-pill anubis-pill" id="pillAnubis" onclick="openModal('modalApiAnubis')"><div class="dot" id="apiDotAnubis"></div><span id="apiTxtAnubis">AnubisPay</span></div>
       <div class="gw-pill umbrella-pill" id="pillUmbrella" onclick="openModal('modalApiUmbrella')"><div class="dot" id="apiDotUmbrella"></div><span id="apiTxtUmbrella">UmbrelaPag</span></div>
     </div>
+    <button class="btn-gh-backup" id="btnGhBackup" onclick="githubBackupManual()" title="Backup de dados no GitHub"><span>↑</span> Dados</button>
+    <button class="btn-gh-sync" id="btnGhSync" onclick="githubSyncCode()" title="Sincronizar arquivos de código para o GitHub"><span>⇅</span> Sync</button>
     <button class="btn-sync" id="btnSync" onclick="syncData()" disabled>
       <span class="ico">↻</span><span class="spin">⟳</span><span class="btn-sync-txt"> Sincronizar</span>
     </button>
@@ -125,6 +127,9 @@
 
       <div class="nav-sec sidebar-bottom">
         <div class="nav-lbl">Config</div>
+        <div class="nav-item" onclick="openGithubConfig();closeSidebar()">
+          <span class="nav-icon"></span> &#x2601; Backup GitHub
+        </div>
         <div class="nav-item" onclick="openTaxasModal();closeSidebar()">
           <span class="nav-icon"></span> Taxas
         </div>
