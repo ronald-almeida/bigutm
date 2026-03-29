@@ -1296,3 +1296,61 @@ tr:hover td { background: var(--glass); }
 }
 
 .notif-filtro.active-notif { color: #00ff87 !important; border-color: rgba(0,255,135,.4) !important; }
+
+/* ── GitHub Backup Button ────────────────────────────────── */
+.btn-gh-backup {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: transparent;
+  color: var(--t2);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all .2s;
+  white-space: nowrap;
+  letter-spacing: .01em;
+}
+.btn-gh-backup:hover {
+  border-color: rgba(0,255,135,.35);
+  color: #00ff87;
+  background: rgba(0,255,135,.05);
+}
+.btn-gh-backup:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+/* ── GitHub Sync Button ──────────────────────────────────── */
+.btn-gh-sync {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: transparent;
+  color: var(--t2);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all .2s;
+  white-space: nowrap;
+  letter-spacing: .01em;
+}
+.btn-gh-sync:hover {
+  border-color: rgba(99,179,237,.35);
+  color: #63b3ed;
+  background: rgba(99,179,237,.05);
+}
+.btn-gh-sync:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
