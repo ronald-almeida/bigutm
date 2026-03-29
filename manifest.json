@@ -1,5 +1,5 @@
 {
-  "name": "BIG UTM \u2014 Painel Financeiro",
+  "name": "BIG UTM — Painel Financeiro",
   "short_name": "BIG UTM",
   "description": "Painel financeiro de gateways de pagamento",
   "start_url": "/bigutm/",
@@ -10,7 +10,13 @@
   "theme_color": "#080f1a",
   "icons": [
     {
-      "src": "Design sem nome.png",
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
