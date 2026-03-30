@@ -1,4 +1,4 @@
-const CACHE = 'bigutm-v1';
+const CACHE = 'bigutm-v2';
 const ASSETS = [
   './',
   './index.html',
