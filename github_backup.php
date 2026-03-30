@@ -16,17 +16,26 @@ define('GH_REPO',  'bigutm');
 define('GH_FILE',  'backup/dados.json');   // caminho do arquivo no repo
 define('GH_BRANCH','main');
 
-/* ── Arquivo local onde o token fica salvo ── */
-define('TOKEN_FILE', __DIR__.'/.gh_token');  // fora do public_html se possível
-
 /* ── Helpers ── */
 function loadToken(){
-  if(!file_exists(TOKEN_FILE)) return '';
-  return trim(file_get_contents(TOKEN_FILE));
+  try{
+    require_once __DIR__ . '/db.php';
+    $pdo  = dbConnect();
+    $stmt = $pdo->prepare("SELECT valor FROM config WHERE chave='gh_token' LIMIT 1");
+    $stmt->execute();
+    $row  = $stmt->fetch();
+    return $row ? trim($row['valor']) : '';
+  }catch(Exception $e){ return ''; }
 }
 
 function saveToken($t){
-  return file_put_contents(TOKEN_FILE, trim($t)) !== false;
+  try{
+    require_once __DIR__ . '/db.php';
+    $pdo  = dbConnect();
+    $stmt = $pdo->prepare("INSERT INTO config (chave,valor) VALUES ('gh_token',?) ON DUPLICATE KEY UPDATE valor=?, updated_at=NOW()");
+    $stmt->execute([trim($t), trim($t)]);
+    return true;
+  }catch(Exception $e){ return false; }
 }
 
 function ghRequest($method, $path, $payload=null){
