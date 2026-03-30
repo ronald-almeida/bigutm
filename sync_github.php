@@ -14,8 +14,6 @@ if($_SERVER['REQUEST_METHOD']==='OPTIONS'){http_response_code(204);exit;}
 define('GH_OWNER',  'ronald-almeida');
 define('GH_REPO',   'bigutm');
 define('GH_BRANCH', 'main');
-define('TOKEN_FILE', __DIR__.'/.gh_token');
-
 /* ── Arquivos a sincronizar ── */
 $SYNC_FILES = [
   'index.html',
@@ -34,8 +32,14 @@ $SYNC_FILES = [
 
 /* ── Helpers ── */
 function loadToken(){
-  if(!file_exists(TOKEN_FILE)) return '';
-  return trim(file_get_contents(TOKEN_FILE));
+  try{
+    require_once __DIR__ . '/db.php';
+    $pdo  = dbConnect();
+    $stmt = $pdo->prepare("SELECT valor FROM config WHERE chave='gh_token' LIMIT 1");
+    $stmt->execute();
+    $row  = $stmt->fetch();
+    return $row ? trim($row['valor']) : '';
+  }catch(Exception $e){ return ''; }
 }
 
 function ghGet($path){
