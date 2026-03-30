@@ -43,7 +43,8 @@ const S = {
   historico:      [],
   metas:          {},
   metaPromptDone: '',
-  chipPromptDone: ''
+  chipPromptDone: '',
+  notifConfig:    { aprovadas: true, pendentes: true, recuperacao: true }
 };
 
 /* ── Persist & Hydrate ────────────────────────────────────── */
@@ -209,6 +210,10 @@ function hydrate(raw){
     // Dicionários de chave-valor
     if(sv.metas        && typeof sv.metas        === 'object') S.metas        = sv.metas;
     if(sv.chipsHistory && typeof sv.chipsHistory === 'object') S.chipsHistory = sv.chipsHistory;
+    if(sv.notifConfig  && typeof sv.notifConfig  === 'object') Object.assign(S.notifConfig, sv.notifConfig);
+
+    // Strings
+    if(sv.recCopy) S.recCopy = sv.recCopy;
 
     // Arrays
     if(Array.isArray(sv.transactions)) S.transactions = sv.transactions;
@@ -284,10 +289,11 @@ function fmtDt(iso){
 function set(id,v){ const e=document.getElementById(id); if(e) e.textContent=v; }
 function fmt(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 
-const isPaid  = s=>{ const u=(s||'').toUpperCase(); return ['PAID','APPROVED','COMPLETE','COMPLETED','SUCCESS','CAPTURED'].includes(u); };
-const isPend  = s=>{ const u=(s||'').toUpperCase(); return ['PENDING','WAITING','PROCESSING','PENDING_ANALYSIS','PENDING_QUEUE'].includes(u); };
-const isRef   = s=>{ const u=(s||'').toUpperCase(); return ['REFUNDED','CHARGEBACK','REVERSED','CANCELLED','CANCELED','REFUSED'].includes(u); };
-const isWithd = s=>['paid','completed','success','approved','done','processed','COMPLETED'].includes((s||'').toLowerCase()||s||'');
+const isPaid  = s=>{ const u=(s||'').toUpperCase(); return ['PAID','APPROVED','COMPLETE','COMPLETED','SUCCESS','CAPTURED','AUTHORIZED'].includes(u); };
+const isPend  = s=>{ const u=(s||'').toUpperCase(); return ['PENDING','WAITING','WAITING_PAYMENT','PROCESSING','PENDING_ANALYSIS','PENDING_QUEUE'].includes(u); };
+const isRef   = s=>{ const u=(s||'').toUpperCase(); return ['REFUNDED','CHARGEBACK','REVERSED'].includes(u); };
+const isRefused = s=>{ const u=(s||'').toUpperCase(); return ['CANCELLED','CANCELED','REFUSED','FAILED','DECLINED'].includes(u); };
+const isWithd = s=>{ const u=(s||'').toUpperCase(); return ['PAID','COMPLETED','SUCCESS','APPROVED','DONE','PROCESSED'].includes(u); };
 // AnubisPay real statuses: COMPLETED|PROCESSING|CANCELLED|REFUSED|PENDING_ANALYSIS|PENDING_QUEUE
 const isWithdAnubis = s=>{ const u=(s||'').toUpperCase(); return u==='COMPLETED'; };
 
@@ -609,7 +615,7 @@ function calc(txs,wds,from,to){
   wds = filterDate(wds, from, to);
 
   const sum=arr=>arr.reduce((a,t)=>a+((t.amount||0)/100),0);
-  const paid=txs.filter(t=>isPaid(t.status)), pending=txs.filter(t=>isPend(t.status)), refunded=txs.filter(t=>isRef(t.status));
+  const paid=txs.filter(t=>isPaid(t.status)), pending=txs.filter(t=>isPend(t.status)), refunded=txs.filter(t=>isRef(t.status)), refused=txs.filter(t=>isRefused(t.status));
   const wdPaid=wds.filter(w=>isWithd(w.status));
 
   // Split por gateway
@@ -665,7 +671,7 @@ function calc(txs,wds,from,to){
   set('valCheckout',brl(tCheckout)); set('subCheckout',CHECKOUT_PCT+'% do faturamento bruto');
   set('valFixosTotal',brl(totFixos)); set('valDeducoes',brl(totDed)); set('subDed',pct(totDed,receitaTotal)+'% da receita');
   set('subFixos','Chip+Func+Cont+Escr');
-  set('valTxCount',txs.length); set('subTx',pending.length+' pendentes · '+refunded.length+' reembolsos');
+  set('valTxCount',txs.length); set('subTx',pending.length+' pendentes · '+refunded.length+' reembolsos · '+refused.length+' recusadas');
 
 
   // Fixos
@@ -695,8 +701,8 @@ function calc(txs,wds,from,to){
 }
 
 /* ── Tabela transações ────────────────────────────────────── */
-const ST_LBL={paid:'Pago',approved:'Pago',completed:'Pago',complete:'Pago',success:'Pago',pending:'Pendente',waiting:'Pendente',processing:'Processando',refunded:'Reembolso',chargeback:'Estorno',reversed:'Estorno',canceled:'Cancelado',cancelled:'Cancelado',failed:'Falhou'};
-const ST_CLS={paid:'bg',approved:'bg',completed:'bg',complete:'bg',success:'bg',pending:'by',waiting:'by',processing:'by',refunded:'br',chargeback:'br',reversed:'br',canceled:'bgr',cancelled:'bgr',failed:'bgr'};
+const ST_LBL={paid:'Pago',approved:'Pago',completed:'Pago',complete:'Pago',success:'Pago',authorized:'Pago',pending:'Pendente',waiting:'Pendente',waiting_payment:'Pendente',processing:'Processando',refunded:'Reembolso',chargeback:'Estorno',reversed:'Estorno',canceled:'Cancelado',cancelled:'Cancelado',refused:'Recusado',declined:'Recusado',failed:'Falhou'};
+const ST_CLS={paid:'bg',approved:'bg',completed:'bg',complete:'bg',success:'bg',authorized:'bg',pending:'by',waiting:'by',waiting_payment:'by',processing:'by',refunded:'br',chargeback:'br',reversed:'br',canceled:'bgr',cancelled:'bgr',refused:'bgr',declined:'bgr',failed:'bgr'};
 
 function renderTable(override){
   const body=document.getElementById('txBody');
@@ -953,7 +959,7 @@ let currentPage = 'resultado';
 /* ── Browser Notifications ──────────────────────────────── */
 let _knownTxIds = new Set();
 
-const PUSH_SERVER  = 'https://bigcompany.shop/painelv/push-proxy.php';
+const PUSH_SERVER  = 'https://bigcofy.shop/bigutm/push-proxy.php';
 const VAPID_PUBLIC = 'BDm_AABF01xcVAphGRFx8eIaZqvRYVgMsQ0ghF6nGuQOwSrMt_uhnR7S-PqpDLrR_aLbCDebfsJI4OxeYLTSFfE';
 
 function urlBase64ToUint8Array(base64String){
