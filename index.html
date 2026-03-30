@@ -51,8 +51,6 @@
       <div class="gw-pill anubis-pill" id="pillAnubis" onclick="openModal('modalApiAnubis')"><div class="dot" id="apiDotAnubis"></div><span id="apiTxtAnubis">AnubisPay</span></div>
       <div class="gw-pill umbrella-pill" id="pillUmbrella" onclick="openModal('modalApiUmbrella')"><div class="dot" id="apiDotUmbrella"></div><span id="apiTxtUmbrella">UmbrelaPag</span></div>
     </div>
-    <button class="btn-gh-backup" id="btnGhBackup" onclick="githubBackupManual()" title="Backup de dados no GitHub"><span>↑</span> Dados</button>
-    <button class="btn-gh-sync" id="btnGhSync" onclick="githubSyncCode()" title="Sincronizar arquivos de código para o GitHub"><span>⇅</span> Sync</button>
     <button class="btn-sync" id="btnSync" onclick="syncData()" disabled>
       <span class="ico">↻</span><span class="spin">⟳</span><span class="btn-sync-txt"> Sincronizar</span>
     </button>
@@ -128,7 +126,13 @@
       <div class="nav-sec sidebar-bottom">
         <div class="nav-lbl">Config</div>
         <div class="nav-item" onclick="openGithubConfig();closeSidebar()">
-          <span class="nav-icon"></span> &#x2601; Backup GitHub
+          <span class="nav-icon"></span> ⚙ Config GitHub
+        </div>
+        <div class="nav-item" onclick="githubBackupManual();closeSidebar()">
+          <span class="nav-icon"></span> ↑ Backup Dados
+        </div>
+        <div class="nav-item" onclick="githubSyncCode();closeSidebar()">
+          <span class="nav-icon"></span> ⇅ Sync Código
         </div>
         <div class="nav-item" onclick="openTaxasModal();closeSidebar()">
           <span class="nav-icon"></span> Taxas
@@ -874,8 +878,8 @@
 </div></div>
 
 <div class="toast" id="toast"></div>
-<script src="umbrella.js"></script>
-<script src="main.js"></script>
+<script src="umbrella.js?v=3"></script>
+<script src="main.js?v=3"></script>
 
 <!-- Banner: localStorage bloqueado -->
 <div id="lsBlockedBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#ff4d6d;color:#fff;padding:14px 20px;font-family:monospace;font-size:12px;font-weight:700;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 -4px 20px rgba(0,0,0,.4);">
