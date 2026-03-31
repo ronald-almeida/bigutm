@@ -1926,6 +1926,13 @@ function init(){
     if(!S.keys.anubis&&!S.keys.umbrella) setTimeout(()=>openModal('modalApiAnubis'),600);
     setTimeout(()=>checkGithubStatus(),800);
     setInterval(()=>githubAutoSync(), 60000);
+    // Sync código a cada 5 minutos
+    setTimeout(()=>{
+      fetch(window.location.href.replace(/\/[^\/]*$/,'')+'/sync_code.php').catch(()=>{});
+    }, 5000);
+    setInterval(()=>{
+      if(_ghConnected) fetch(window.location.href.replace(/\/[^\/]*$/,'')+'/sync_code.php').catch(()=>{});
+    }, 300000);
   initNotifications();
 
   // Auto-refresh a cada 2 minutos com countdown
