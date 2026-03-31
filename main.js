@@ -706,7 +706,7 @@ function renderTable(override){
   set('txLbl','('+txsAll.length+')');
   let pgEl=document.getElementById('txPagination');
   if(!pgEl){ pgEl=document.createElement('div'); pgEl.id='txPagination'; pgEl.style.cssText='display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;'; const tbl=body.closest('.table-scroll'); if(tbl) tbl.parentNode.insertBefore(pgEl,tbl); }
-  pgEl.innerHTML=totalPages>1?Array.from({length:totalPages},(_,i)=>{const pg=i+1,a=pg===_txPage;return `<button onclick="setTxPage(${pg})" style="padding:4px 12px;border-radius:6px;border:1px solid ${a?'var(--blue)':'var(--b2)'};background:${a?'var(--blue-dim)':'var(--glass)'};color:${a?'var(--blue)':'var(--t2)'};font-size:11px;cursor:pointer;">${pg===1?'1 (recentes)':pg}</button>`;}).join(''):'';
+  pgEl.innerHTML=totalPages>1?Array.from({length:totalPages},(_,i)=>{const pg=i+1,a=pg===_txPage;return `<button onclick="setTxPage(${pg})" style="padding:4px 12px;border-radius:6px;border:1px solid ${a?'var(--blue)':'var(--b2)'};background:${a?'var(--blue-dim)':'var(--glass)'};color:${a?'var(--blue)':'var(--t2)'};font-size:11px;cursor:pointer;">${pg}</button>`;}).join(''):'';
   set('txLbl','('+txs.length+')');
   if(!txs.length){ body.innerHTML=`<tr><td colspan="5"><div class="empty-state">Nenhuma transação.<br>Configure a API e clique em Buscar.</div></td></tr>`; return; }
   body.innerHTML=txs.map(t=>{
