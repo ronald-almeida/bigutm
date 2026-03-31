@@ -69,14 +69,18 @@ async function umbrellaFetch(url, headers){
 }
 
 async function umbrellaFetchTransactions(key, from, to){
-  // UmbrelaPag nao suporta filtro de data via query — retorna tudo e filtra localmente
-  const p = new URLSearchParams({ limit: 100 });
-  const url  = `${UMBRELLA_BASE}/user/transactions?${p}`;
-  const json = await umbrellaFetch(url, umbrellaHeaders(key));
-  // Response: { data: { data: [...] } } ou { data: [...] }
-  const inner = json.data?.data || json.data || [];
-  const rows = Array.isArray(inner) ? inner : [];
-  return rows.map(tx => umbrellaNormTx(tx));
+  let all = [], page = 1, totalPages = 1;
+  do {
+    const p = new URLSearchParams({ page, limit: 100 });
+    const url  = `${UMBRELLA_BASE}/user/transactions?${p}`;
+    const json = await umbrellaFetch(url, umbrellaHeaders(key));
+    const inner = json && json.data && json.data.data ? json.data.data : [];
+    const rows  = Array.isArray(inner) ? inner : [];
+    all = all.concat(rows.map(tx => umbrellaNormTx(tx)));
+    totalPages = (json && json.data && json.data.pages) ? json.data.pages : 1;
+    page++;
+  } while(page <= totalPages && page <= 25);
+  return all;
 }
 
 async function umbrellaFetchWithdrawals(key, from, to){
