@@ -112,9 +112,6 @@
           <span class="nav-icon"></span> Notificações
           <span class="nav-badge" id="notifBadge" style="display:none;">0</span>
         </div>
-        <div class="nav-item" onclick="syncNotifConfigUI();openModal('modalNotifConfig')">
-          <span class="nav-icon"></span> Config Notif
-        </div>
         <div class="nav-item" onclick="openFixoModal('func');closeSidebar()">
           <span class="nav-icon"></span> Funcionários
         </div>
@@ -126,13 +123,8 @@
       <div class="nav-sec sidebar-bottom">
         <div class="nav-lbl">Config</div>
         <div class="nav-item" onclick="openGithubConfig();closeSidebar()">
-          <span class="nav-icon"></span> ⚙ Config GitHub
-        </div>
-        <div class="nav-item" onclick="githubBackupManual();closeSidebar()">
-          <span class="nav-icon"></span> ↑ Backup Dados
-        </div>
-        <div class="nav-item" onclick="githubSyncCode();closeSidebar()">
-          <span class="nav-icon"></span> ⇅ Sync Código
+          <span class="nav-icon"></span> GitHub
+          <span id="githubStatusBadge" style="margin-left:auto;font-size:10px;color:var(--t3);">...</span>
         </div>
         <div class="nav-item" onclick="openTaxasModal();closeSidebar()">
           <span class="nav-icon"></span> Taxas
@@ -691,38 +683,7 @@
     </section>
 
 
-    <!-- ═══════════════ PÁGINA: NOTIFICAÇÕES ═══════════════ -->
-    <section class="page" id="page-notificacoes">
-
-      <!-- Header -->
-      <div class="chip-mes-card" style="margin-bottom:14px;">
-        <div class="cmc-left">
-          <div class="cmc-label">Notificações</div>
-          <div class="cmc-note" id="notifResumo">Carregando...</div>
-        </div>
-        <div style="display:flex;gap:8px;align-self:center;">
-          <button class="btn-cancel" onclick="marcarTodasLidas()" style="font-size:11px;padding:6px 12px;">✓ Marcar todas lidas</button>
-          <button class="btn-cancel" onclick="limparNotificacoes()" style="font-size:11px;padding:6px 12px;color:var(--red);border-color:var(--red);">Limpar</button>
-          <button id="btnAtivarPush" onclick="ativarPushNotif()" style="font-size:11px;padding:8px 14px;background:var(--glass2);border:1px solid var(--b2);border-radius:8px;color:#fff;cursor:pointer;">🔔 Push</button>
-          <button onclick="diagPush()" style="font-size:11px;padding:8px 14px;background:var(--glass2);border:1px solid var(--b2);border-radius:8px;color:#fff;cursor:pointer;">🔍 Diagnóstico</button>
-        </div>
-      </div>
-
-      <!-- Filtros -->
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
-        <button class="fixo-btn notif-filtro active-notif" data-filtro="todas" onclick="setNotifFiltro('todas')">Todas</button>
-        <button class="fixo-btn notif-filtro" data-filtro="nao_lidas" onclick="setNotifFiltro('nao_lidas')">Não lidas</button>
-        <button class="fixo-btn notif-filtro" data-filtro="financeiro" onclick="setNotifFiltro('financeiro')">Financeiro</button>
-        <button class="fixo-btn notif-filtro" data-filtro="recuperacao" onclick="setNotifFiltro('recuperacao')">Recuperação</button>
-        <button class="fixo-btn notif-filtro" data-filtro="sistema" onclick="setNotifFiltro('sistema')">Sistema</button>
-      </div>
-
-      <!-- Lista -->
-      <div id="notifLista" style="display:flex;flex-direction:column;gap:8px;"></div>
-      <div id="notifLoadMore" style="text-align:center;margin-top:14px;display:none;">
-        <button class="btn-cancel" onclick="loadMoreNotif()" style="font-size:11px;">Carregar mais</button>
-      </div>
-    </section>
+    
 
   </main>
 </div><!-- /.layout -->
@@ -878,8 +839,8 @@
 </div></div>
 
 <div class="toast" id="toast"></div>
-<script src="umbrella.js?v=3"></script>
-<script src="main.js?v=3"></script>
+<script src="umbrella.js?v=1774971642"></script>
+<script src="main.js?v=1774973859"></script>
 
 <!-- Banner: localStorage bloqueado -->
 <div id="lsBlockedBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#ff4d6d;color:#fff;padding:14px 20px;font-family:monospace;font-size:12px;font-weight:700;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 -4px 20px rgba(0,0,0,.4);">
@@ -989,36 +950,7 @@
   </div>
 </div></div>
 
-<!-- Modal: Configurações de Notificação -->
-<div class="modal-bg" id="modalNotifConfig"><div class="modal">
-  <div class="modal-title">🔔 Configurações de Notificação</div>
-  <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--b1);">
-      <div>
-        <div style="font-size:13px;color:#fff;font-weight:500;">Vendas Aprovadas</div>
-        <div style="font-size:11px;color:var(--t3);margin-top:2px;">Notificar quando PIX for pago</div>
-      </div>
-      <button id="btnToggleAprovadas" onclick="toggleNotifConfig('aprovadas')" style="width:52px;height:28px;border-radius:20px;border:none;cursor:pointer;transition:.3s;font-size:11px;font-weight:700;">OFF</button>
-    </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--b1);">
-      <div>
-        <div style="font-size:13px;color:#fff;font-weight:500;">Vendas Geradas (PIX)</div>
-        <div style="font-size:11px;color:var(--t3);margin-top:2px;">Notificar quando PIX for gerado</div>
-      </div>
-      <button id="btnTogglePendentes" onclick="toggleNotifConfig('pendentes')" style="width:52px;height:28px;border-radius:20px;border:none;cursor:pointer;transition:.3s;font-size:11px;font-weight:700;">OFF</button>
-    </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;">
-      <div>
-        <div style="font-size:13px;color:#fff;font-weight:500;">Recuperação de Vendas</div>
-        <div style="font-size:11px;color:var(--t3);margin-top:2px;">Alertas após 5min, 30min e 2h</div>
-      </div>
-      <button id="btnToggleRecuperacao" onclick="toggleNotifConfig('recuperacao')" style="width:52px;height:28px;border-radius:20px;border:none;cursor:pointer;transition:.3s;font-size:11px;font-weight:700;">OFF</button>
-    </div>
-  </div>
-  <div class="modal-actions" style="margin-top:8px;">
-    <button class="btn-save" onclick="closeModal('modalNotifConfig')">Fechar</button>
-  </div>
-</div></div>
+
 
 <script>
 if('serviceWorker' in navigator){
