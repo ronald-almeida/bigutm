@@ -44,7 +44,7 @@ const S = {
   metas:          {},
   metaPromptDone: '',
   chipPromptDone: '',
-  notifConfig:    { aprovadas: true, pendentes: true, recuperacao: true }
+  notifConfig: { aprovadas: true, pendentes: true, recuperacao: true },
 };
 
 /* ── Persist & Hydrate ────────────────────────────────────── */
@@ -115,29 +115,6 @@ async function githubBackupManual(){
 }
 
 
-async function githubSyncCode(){
-  const btn=document.getElementById('btnGhSync');
-  if(btn){btn.textContent='⟳ Sync...';btn.disabled=true;}
-  try{
-    const SYNC_URL=SAVE_URL.replace('save.php','sync_github.php');
-    const res=await fetch(SYNC_URL,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({mode:'all'})
-    });
-    const d=await res.json();
-    if(d.ok){
-      const s=d.summary;
-      showToast(`✓ GitHub sync: ${s.updated} atualizados, ${s.created} criados, ${s.unchanged} sem mudança`,'green');
-    } else {
-      showToast('⚠ Sync falhou: '+(d.error||'erro'),'red');
-    }
-  }catch(e){
-    showToast('⚠ Erro sync: '+e.message,'red');
-  }finally{
-    if(btn){btn.textContent='⇅ Sync';btn.disabled=false;}
-  }
-}
 
 function openGithubConfig(){
   const token=prompt(
@@ -152,8 +129,12 @@ function openGithubConfig(){
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({action:'save_token',token})
   }).then(r=>r.json()).then(d=>{
-    if(d.ok){ showToast('\u2713 Token GitHub salvo!','green'); }
-    else     { showToast('Erro ao salvar token: '+(d.error||''),'red'); }
+    if(d.ok){
+      showToast('\u2713 Token GitHub salvo!','green');
+      setTimeout(()=>checkGithubStatus(),500);
+    } else {
+      showToast('Erro ao salvar token: '+(d.error||''),'red');
+    }
   }).catch(()=>showToast('Erro de conexao','red'));
 }
 
@@ -588,7 +569,6 @@ async function syncData(){
     allWd.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
     S.transactions=allTx; S.withdrawals=allWd; persist();
     checkNewTransactions(allTx);
-    processarNotifTx(allTx);
     calc(allTx,allWd,from,to);
     showToast(`✓ ${allTx.length} transações · ${allWd.length} saques`,'green');
   }catch(err){ showToast('✗ '+err.message,'red'); console.error(err); }
@@ -704,16 +684,29 @@ function calc(txs,wds,from,to){
 const ST_LBL={paid:'Pago',approved:'Pago',completed:'Pago',complete:'Pago',success:'Pago',authorized:'Pago',pending:'Pendente',waiting:'Pendente',waiting_payment:'Pendente',processing:'Processando',refunded:'Reembolso',chargeback:'Estorno',reversed:'Estorno',canceled:'Cancelado',cancelled:'Cancelado',refused:'Recusado',declined:'Recusado',failed:'Falhou'};
 const ST_CLS={paid:'bg',approved:'bg',completed:'bg',complete:'bg',success:'bg',authorized:'bg',pending:'by',waiting:'by',waiting_payment:'by',processing:'by',refunded:'br',chargeback:'br',reversed:'br',canceled:'bgr',cancelled:'bgr',refused:'bgr',declined:'bgr',failed:'bgr'};
 
+let _txPage = 1;
+const TX_PER_PAGE = 100;
+
+function setTxPage(pg){ _txPage=pg; renderTable(); }
+
 function renderTable(override){
   const body=document.getElementById('txBody');
   const fSt=document.getElementById('filterSt').value, fGw=document.getElementById('filterGw').value;
   const q=(document.getElementById('searchIn').value||'').toLowerCase();
   const src=override||S.transactions;
-  const txs=src.filter(t=>{
+  const txsAll=src.filter(t=>{
     const st=(t.status||'').toLowerCase(), nm=(t.customer?.name||t.customer?.email||String(t.id||'')).toLowerCase();
     if(fSt&&st!==fSt) return false; if(fGw&&t._gateway!==fGw) return false;
     if(q&&!nm.includes(q)&&!String(t.id||'').includes(q)) return false; return true;
-  }).slice(0,200);
+  });
+  const totalPages=Math.ceil(txsAll.length/TX_PER_PAGE)||1;
+  if(_txPage>totalPages) _txPage=1;
+  const start=(_txPage-1)*TX_PER_PAGE;
+  const txs=txsAll.slice(start,start+TX_PER_PAGE);
+  set('txLbl','('+txsAll.length+')');
+  let pgEl=document.getElementById('txPagination');
+  if(!pgEl){ pgEl=document.createElement('div'); pgEl.id='txPagination'; pgEl.style.cssText='display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;'; const tbl=body.closest('.table-scroll'); if(tbl) tbl.parentNode.insertBefore(pgEl,tbl); }
+  pgEl.innerHTML=totalPages>1?Array.from({length:totalPages},(_,i)=>{const pg=i+1,a=pg===_txPage;return `<button onclick="setTxPage(${pg})" style="padding:4px 12px;border-radius:6px;border:1px solid ${a?'var(--blue)':'var(--b2)'};background:${a?'var(--blue-dim)':'var(--glass)'};color:${a?'var(--blue)':'var(--t2)'};font-size:11px;cursor:pointer;">${pg===1?'1 (recentes)':pg}</button>`;}).join(''):'';
   set('txLbl','('+txs.length+')');
   if(!txs.length){ body.innerHTML=`<tr><td colspan="5"><div class="empty-state">Nenhuma transação.<br>Configure a API e clique em Buscar.</div></td></tr>`; return; }
   body.innerHTML=txs.map(t=>{
@@ -1051,11 +1044,8 @@ function criarNotificacao(title, message, tipo, actionUrl){
     created_at: new Date().toISOString(),
     action_url: actionUrl
   };
-  S.notificacoes.unshift(notif);
-  if(S.notificacoes.length > 200) S.notificacoes = S.notificacoes.slice(0,200);
   persist();
-  updateNotifBadge();
-  return notif;
+    return notif;
 }
 
 
@@ -1139,13 +1129,7 @@ function atualizarBtnPush(){
   }
 }
 
-function updateNotifBadge(){
-  const naoLidas = (S.notificacoes||[]).filter(n=>!n.read).length;
-  const badge = document.getElementById('notifBadge');
-  if(!badge) return;
-  badge.style.display = naoLidas > 0 ? '' : 'none';
-  badge.textContent = naoLidas > 99 ? '99+' : naoLidas;
-}
+function updateNotifBadge(){}
 
 function setNotifFiltro(filtro){
   _notifFiltro = filtro; _notifPage = 1;
@@ -1154,17 +1138,13 @@ function setNotifFiltro(filtro){
 }
 
 function getNotifFiltradas(){
-  let list = S.notificacoes||[];
   if(_notifFiltro==='nao_lidas') list=list.filter(n=>!n.read);
   else if(_notifFiltro!=='todas') list=list.filter(n=>n.tipo===_notifFiltro);
   return list;
 }
 
 function renderNotificacoes(){
-  updateNotifBadge();
-  const list = getNotifFiltradas();
-  const naoLidas = (S.notificacoes||[]).filter(n=>!n.read).length;
-  set('notifResumo', (S.notificacoes||[]).length+' notificações · '+naoLidas+' não lidas');
+    const list = getNotifFiltradas();
   const slice = list.slice(0, _notifPage * NOTIF_PAGE_SIZE);
   const container = document.getElementById('notifLista');
   if(!container) return;
@@ -1193,25 +1173,21 @@ function renderNotificacoes(){
 function loadMoreNotif(){ _notifPage++; renderNotificacoes(); }
 
 function lerNotificacao(id){
-  const n = (S.notificacoes||[]).find(n=>n.id===id);
   if(!n) return;
-  n.read=true; persist(); updateNotifBadge(); renderNotificacoes();
+  n.read=true; persist(); renderNotificacoes();
   if(n.action_url) goPage(n.action_url);
 }
 
 function marcarTodasLidas(){
-  (S.notificacoes||[]).forEach(n=>n.read=true);
-  persist(); updateNotifBadge(); renderNotificacoes();
+  persist(); renderNotificacoes();
   showToast('Todas marcadas como lidas','green');
 }
 
 function deletarNotificacao(id){
-  S.notificacoes=(S.notificacoes||[]).filter(n=>n.id!==id);
-  persist(); updateNotifBadge(); renderNotificacoes();
+  persist(); renderNotificacoes();
 }
 
 function limparNotificacoes(){
-  S.notificacoes=[]; persist(); updateNotifBadge(); renderNotificacoes();
   showToast('Notificações limpas','yellow');
 }
 
@@ -1222,24 +1198,7 @@ function initNotifGatilhos(){
   (S.transactions||[]).forEach(tx=>_notifTxIds.add(tx.id));
 }
 
-function processarNotifTx(newTxs){
-  (newTxs||[]).forEach(tx=>{
-    if(_notifTxIds.has(tx.id)) return;
-    _notifTxIds.add(tx.id);
-    const valor = 'R$ '+brl((tx.amount||0)/100);
-    const nome  = tx.customer&&tx.customer.name ? tx.customer.name : 'Cliente';
-    if(tx.status==='PAID'||tx.status==='AUTHORIZED'){
-      if(S.notifConfig.aprovadas !== false) criarNotificacao('Venda Aprovada ✓', nome+' — '+valor, 'financeiro');
-    } else if(tx.status==='WAITING_PAYMENT'){
-      if(S.notifConfig.pendentes !== false) criarNotificacao('PIX Gerado', nome+' — '+valor+' aguardando pagamento', 'financeiro');
-      if(S.notifConfig.recuperacao !== false){
-        agendarRecuperacao(tx, 5*60*1000,   1, valor, nome);
-        agendarRecuperacao(tx, 30*60*1000,  2, valor, nome);
-        agendarRecuperacao(tx, 120*60*1000, 3, valor, nome);
-      }
-    }
-  });
-}
+function processarNotifTx(){ }
 
 function agendarRecuperacao(tx, delay, etapa, valor, nome){
   const key = tx.id+'_'+etapa;
@@ -1911,6 +1870,44 @@ function initAuth(){
   });
 }
 
+
+/* ── GitHub Status ─────────────────────────────────────────── */
+let _ghConnected = false;
+
+async function checkGithubStatus(){
+  try{
+    const res = await fetch(SAVE_URL.replace('save.php','github_backup.php'));
+    const d   = await res.json();
+    _ghConnected = d.configured === true;
+    updateGithubBadge();
+    return _ghConnected;
+  }catch(e){ _ghConnected=false; updateGithubBadge(); return false; }
+}
+
+function updateGithubBadge(){
+  const badge = document.getElementById('githubStatusBadge');
+  if(!badge){ setTimeout(updateGithubBadge,500); return; }
+  if(_ghConnected){
+    badge.textContent = '✓ conectado';
+    badge.style.color = '#00ff87';
+    badge.style.fontWeight = '600';
+  } else {
+    badge.textContent = '✗ desconectado';
+    badge.style.color = 'var(--t3)';
+  }
+}
+
+async function githubAutoSync(){
+  if(!_ghConnected) return;
+  try{
+    const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(S))));
+    await fetch(SAVE_URL.replace('save.php','github_backup.php'),{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({data:b64,mode:'auto'})
+    });
+  }catch(e){}
+}
+
 function init(){
   // Carrega do servidor primeiro, localStorage como fallback
   hydrateFromServer().then(raw => {
@@ -1923,11 +1920,12 @@ function init(){
     updateApiStatus();
     goPage('resultado');
     renderChart(); renderTable(); renderWithdrawals(); updateFixosDisplay(); renderEscritorio(); render2FA(); renderAquisicoes(); renderImpostos(); renderDisparos();
-    initNotifGatilhos(); updateNotifBadge();
-    renderMeta(calcBrutoAtual()); renderHistoricoMetas(); renderChipHistorico();
+    initNotifGatilhos();     renderMeta(calcBrutoAtual()); renderHistoricoMetas(); renderChipHistorico();
     if(S.transactions.length) calc(S.transactions,S.withdrawals,'','');
     checkMetaPrompt(); checkChipPrompt();
     if(!S.keys.anubis&&!S.keys.umbrella) setTimeout(()=>openModal('modalApiAnubis'),600);
+    setTimeout(()=>checkGithubStatus(),800);
+    setInterval(()=>githubAutoSync(), 60000);
   initNotifications();
 
   // Auto-refresh a cada 2 minutos com countdown
