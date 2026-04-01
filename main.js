@@ -11,6 +11,7 @@ function mesLabel(key){
   return ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][parseInt(m)-1]+'/'+String(y).slice(-2);
 }
 function curMesKey(){ return mesKey(new Date()); }
+function prevMesKey(){ const d=new Date(); d.setMonth(d.getMonth()-1); return mesKey(d); }
 
 /* ── State ────────────────────────────────────────────────── */
 /*
@@ -30,7 +31,7 @@ const S = {
     anubis:   { pct:0, fixo:0, retencao:0, taxaSaque:0 },
     umbrella: { pct:0, fixo:0, retencao:0, taxaSaque:0 }
   },
-  fixos:          { func:{val:0,qtd:0}, cont:{val:0}, escritorio:[], aquisicoes:[] },
+  fixos:          { func:{val:0,qtd:0}, cont:{val:0}, escritorio:[], aquisicoes:[], escritorioHist:{}, aquisicoesHist:{} },
   impostos:       [],
   tfa:            [],
   disparos:       [],
@@ -279,8 +280,8 @@ const isWithd = s=>{ const u=(s||'').toUpperCase(); return ['PAID','COMPLETED','
 const isWithdAnubis = s=>{ const u=(s||'').toUpperCase(); return u==='COMPLETED'; };
 
 /* ── Calcular taxas de um gateway ─────────────────────────── */
-function totalEscritorio(){ return (S.fixos.escritorio||[]).reduce((a,i)=>a+(i.val||0),0); }
-function totalAquisicoes(){ return (S.fixos.aquisicoes||[]).reduce((a,i)=>a+(i.val||0),0); }
+function totalEscritorio(mk){ const k=mk||curMesKey(); const h=S.fixos.escritorioHist||{}; return h[k]!==undefined?h[k]:(S.fixos.escritorio||[]).reduce((a,i)=>a+(i.val||0),0); }
+function totalAquisicoes(mk){ const k=mk||curMesKey(); const h=S.fixos.aquisicoesHist||{}; return h[k]!==undefined?h[k]:(S.fixos.aquisicoes||[]).reduce((a,i)=>a+(i.val||0),0); }
 function nextEscrId(){ return Date.now()+'_'+Math.random().toString(36).slice(2,6); }
 
 function calcTaxasGw(gw, brutoGw, vendasGw, saquesGw){
@@ -612,9 +613,15 @@ function calc(txs,wds,from,to){
   const tCheckout = bruto * (CHECKOUT_PCT / 100);
   const totTaxas=tA.total+tB.total+tCheckout;
 
-  // Fixos
+  // Fixos — só abate quando período é mês completo
   const ck=curMesKey();
-  const fChip=chipDoMes(ck), fFunc=S.fixos.func.val, fCont=S.fixos.cont.val, fEscr=totalEscritorio(), fAq=totalAquisicoes();
+  const activePeriod = document.querySelector('.period-btn.active')?.dataset?.period || 'month';
+  const isMesPeriod = activePeriod === 'month' || activePeriod === 'last';
+  const fChip = isMesPeriod ? chipDoMes(ck) : 0;
+  const fFunc = isMesPeriod ? (S.fixos.func.val||0) : 0;
+  const fCont = isMesPeriod ? (S.fixos.cont.val||0) : 0;
+  const fEscr = isMesPeriod ? totalEscritorio(activePeriod==='last' ? prevMesKey() : ck) : 0;
+  const fAq   = isMesPeriod ? totalAquisicoes(activePeriod==='last' ? prevMesKey() : ck) : 0;
   const totFixos=fChip+fFunc+fCont+fEscr+fAq;
   const totDed=totTaxas+totFixos;
 
